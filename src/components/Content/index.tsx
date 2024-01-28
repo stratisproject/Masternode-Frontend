@@ -60,13 +60,12 @@ const Content = () => {
         </button>
       )
     } else if (userRegistrationStatus === RegistrationStatus.REGISTERED) {
-      const disabled = userRewards.eq(0) || pendingClaimRewards || pendingStartWithdrawal
       return (
         <>
-          <button disabled={disabled} onClick={claimRewards}>
+          <button disabled={userRewards.eq(0) || pendingClaimRewards || pendingStartWithdrawal} onClick={claimRewards}>
             Claim rewards
           </button>
-          <button disabled={disabled} onClick={startWithdrawal}>
+          <button disabled={pendingClaimRewards || pendingStartWithdrawal} onClick={startWithdrawal}>
             Start withdrawal
           </button>
         </>
