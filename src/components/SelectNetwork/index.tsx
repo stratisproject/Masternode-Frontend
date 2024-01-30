@@ -18,10 +18,10 @@ const SelectNetwork = () => {
 
   return (
     <div className={styles.network}>
-      <div className={styles.button} onClick={() => setShowOptions(true)}>
+      <div  className="flex gap-2 pointer-events-auto rounded-md bg-purple-700 px-3 py-2 text-[0.8125rem] font-semibold leading-5 text-white hover:bg-indigo-500" onClick={() => setShowOptions(true)}>
         {activeNetwork ? (
           <>
-            <img width="30px" height="30px" src={activeNetwork.icon} alt={activeNetwork.name} />
+            <img width="20px" height="20px" src={activeNetwork.icon} alt={activeNetwork.name} />
             {activeNetwork.name}
           </>
         ) : 'Wrong network'}

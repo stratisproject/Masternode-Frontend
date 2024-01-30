@@ -7,7 +7,7 @@ import { updateSelectedWallet } from 'state/wallet/reducer'
 
 import { useWalletModal } from 'components/WalletModal'
 
-import styles from './styles.module.scss'
+//import styles from './styles.module.scss'
 
 const ConnectButton = () => {
   const { openWalletModal } = useWalletModal()
@@ -31,7 +31,7 @@ const ConnectButton = () => {
 
   if (connected) {
     return (
-      <button className={styles.button} onClick={disconnect}>
+      <button className="flex gap-2 pointer-events-auto rounded-md bg-purple-900 px-3 py-2 text-[0.8125rem] font-semibold leading-5 text-white hover:bg-indigo-500" onClick={disconnect}>
         <div>
           {account}
         </div>
@@ -41,7 +41,7 @@ const ConnectButton = () => {
   }
 
   return (
-    <button className={styles.button} onClick={openWalletModal}>
+    <button className="flex gap-2 pointer-events-auto rounded-md bg-purple-900 px-3 py-2 text-[0.8125rem] font-semibold leading-5 text-white hover:bg-indigo-500" onClick={openWalletModal}>
       Connect Wallet
     </button>
   )

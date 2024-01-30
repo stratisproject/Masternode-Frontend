@@ -3,6 +3,8 @@ import { formatEther } from 'ethers/lib/utils'
 
 import { RegistrationStatus, UserType } from 'types'
 
+import StatsCard, { StatsCardProps } from './StatsCard'
+
 import {
   useRegisterUser,
   useClaimRewards,
@@ -30,7 +32,7 @@ import {
 
 import { WITHDRAWAL_DELAY } from '../../constants'
 
-import styles from './styles.module.scss'
+import { CalculatorIcon, ChartBarSquareIcon } from '@heroicons/react/24/outline'
 
 const Content = () => {
   const { pending: pendingRegisterUser, registerUser } = useRegisterUser()
@@ -54,11 +56,19 @@ const Content = () => {
 
   const renderAction = useCallback(() => {
     if (userRegistrationStatus === RegistrationStatus.UNREGISTERED) {
-      return (
-        <button disabled={pendingRegisterUser || userBalance.lt(userCollateralAmount)} onClick={registerUser}>
-          Register
-        </button>
-      )
+      if (pendingRegisterUser || userBalance.lt(userCollateralAmount)) {
+        return (
+          <button className='cursor-not-allowed rounded-md bg-gray-300 px-3 py-2 text-[0.8125rem] font-semibold leading-5 text-purple opacity-50 hover:bg-indigo-500' disabled={true}>
+            Register
+          </button>
+        )
+      } else {
+        return (
+          <button className='cursor-pointer rounded-md bg-purple-800 px-3 py-2 text-[0.8125rem] font-semibold leading-5 text-white opacity-50 hover:bg-indigo-500' onClick={registerUser}>
+            Register
+          </button>
+        )
+      }
     } else if (userRegistrationStatus === RegistrationStatus.REGISTERED) {
       return (
         <>
@@ -96,90 +106,81 @@ const Content = () => {
     completeWithdrawal,
   ])
 
+  const genericStatsData: StatsCardProps[] = [
+    {
+      icon: <CalculatorIcon className="h-6 w-6 text-orange-500" />,
+      title: 'MasterNode contract balance',
+      value: `${formatEther(balance)} STRAX`,
+    },
+    {
+      icon: <CalculatorIcon className="h-6 w-6 text-orange-500" />,
+      title: 'Total collateral amount',
+      value: `${formatEther(totalCollateralAmount)} STRAX`,
+    },
+    {
+      icon: <ChartBarSquareIcon className="h-6 w-6 text-orange-500" />,
+      title: 'Total registrations',
+      value: totalRegistrations,
+    },
+    {
+      icon: <ChartBarSquareIcon className="h-6 w-6 text-orange-500" />,
+      title: 'Total block shares',
+      value: totalBlockShares,
+    },
+  ]
+
+  const userStatsData: StatsCardProps[] = [
+    {
+      icon: <CalculatorIcon className="h-6 w-6 text-orange-500" />,
+      title: 'Balance',
+      value: `${formatEther(userBalance)} STRAX`,
+    },
+    {
+      icon: <CalculatorIcon className="h-6 w-6 text-orange-500" />,
+      title: 'Rewards',
+      value: `${formatEther(userRewards)} STRAX`,
+    },
+    {
+      icon: <CalculatorIcon className="h-6 w-6 text-orange-500" />,
+      title: 'Collateral amount',
+      value: `${formatEther(userCollateralAmount)} STRAX`,
+    },
+    {
+      icon: <ChartBarSquareIcon className="h-6 w-6 text-orange-500" />,
+      title: 'Block shares',
+      value: userBlockShares,
+    },
+    {
+      icon: <ChartBarSquareIcon className="h-6 w-6 text-orange-500" />,
+      title: 'Last claimed block',
+      value: userLastClaimedBlock,
+    },
+  ]
+
   return (
-    <div className={styles.content}>
-      <div className={styles.stats}>
-        <div className={styles.box}>
-          <div className={styles.title}>
-            MasterNode contract balance
-          </div>
-          <div className={styles.value}>
-            {`${formatEther(balance)} STRAT`}
-          </div>
-        </div>
-        <div className={styles.box}>
-          <div className={styles.title}>
-            Total collateral amount
-          </div>
-          <div className={styles.value}>
-            {`${formatEther(totalCollateralAmount)} STRAT`}
-          </div>
-        </div>
-        <div className={styles.box}>
-          <div className={styles.title}>
-            Total registrations
-          </div>
-          <div className={styles.value}>
-            {totalRegistrations}
-          </div>
-        </div>
-        <div className={styles.box}>
-          <div className={styles.title}>
-            Total block shares
-          </div>
-          <div className={styles.value}>
-            {totalBlockShares}
-          </div>
-        </div>
+    <div className="p-5 mb-5">
+      <div className="flex flex-wrap gap-4 mb-5">
+        {genericStatsData.map((data, index) => (
+          <StatsCard
+            key={index}
+            icon={data.icon}
+            title={data.title}
+            value={data.value}
+          />
+        ))}
+        {userType !== UserType.UNKNOWN ? (userStatsData.map((data, index) => (
+          <StatsCard
+            key={index}
+            icon={data.icon}
+            title={data.title}
+            value={data.value}
+          />
+        ))) : null}
       </div>
       {userType !== UserType.UNKNOWN ? (
-        <>
-          <div className={styles.stats}>
-            <div className={styles.box}>
-              <div className={styles.title}>
-                Balance
-              </div>
-              <div className={styles.value}>
-                {`${formatEther(userBalance)} STRAT`}
-              </div>
-            </div>
-            <div className={styles.box}>
-              <div className={styles.title}>
-                Rewards
-              </div>
-              <div className={styles.value}>
-                {`${formatEther(userRewards)} STRAT`}
-              </div>
-            </div>
-            <div className={styles.box}>
-              <div className={styles.title}>
-                Collateral amount
-              </div>
-              <div className={styles.value}>
-                {`${formatEther(userCollateralAmount)} STRAT`}
-              </div>
-            </div>
-            <div className={styles.box}>
-              <div className={styles.title}>
-                Block shares
-              </div>
-              <div className={styles.value}>
-                {userBlockShares}
-              </div>
-            </div>
-            <div className={styles.box}>
-              <div className={styles.title}>
-                Last claimed block
-              </div>
-              <div className={styles.value}>
-                {userLastClaimedBlock}
-              </div>
-            </div>
-          </div>
-          <div className={styles.actions}>
-            {renderAction()}
-          </div>
-        </>
+        <div className="flex items-center gap-3">
+          {renderAction()}
+        </div>
       ) : null}
     </div>
   )
