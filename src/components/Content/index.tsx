@@ -56,26 +56,47 @@ const Content = () => {
 
   const renderAction = useCallback(() => {
     if (userRegistrationStatus === RegistrationStatus.UNREGISTERED) {
-      if (pendingRegisterUser || userBalance.lt(userCollateralAmount)) {
-        return (
-          <button className='cursor-not-allowed rounded-md bg-gray-300 px-3 py-2 text-[0.8125rem] font-semibold leading-5 text-purple opacity-50 hover:bg-indigo-500' disabled={true}>
-            Register
-          </button>
-        )
-      } else {
-        return (
-          <button className='cursor-pointer rounded-md bg-purple-800 px-3 py-2 text-[0.8125rem] font-semibold leading-5 text-white opacity-50 hover:bg-indigo-500' onClick={registerUser}>
-            Register
-          </button>
-        )
-      }
+      const isDisabled = pendingRegisterUser || userBalance.lt(userCollateralAmount)
+
+      return (
+        <button
+          className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+            isDisabled
+              ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
+              : 'cursor-pointer bg-purple-800 text-white'
+          }`}
+          disabled={isDisabled}
+          onClick={isDisabled ? undefined : registerUser}
+        >
+          Register
+        </button>
+      )
     } else if (userRegistrationStatus === RegistrationStatus.REGISTERED) {
+      const isClaimDisabled = userRewards.eq(0) || pendingClaimRewards || pendingStartWithdrawal
+      const isStartDisabled = pendingClaimRewards || pendingStartWithdrawal
+
       return (
         <>
-          <button disabled={userRewards.eq(0) || pendingClaimRewards || pendingStartWithdrawal} onClick={claimRewards}>
+          <button
+            className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+              isClaimDisabled
+                ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
+                : 'cursor-pointer bg-purple-800 text-white'
+            }`}
+            disabled={isClaimDisabled}
+            onClick={isClaimDisabled ? undefined : claimRewards}
+          >
             Claim rewards
           </button>
-          <button disabled={pendingClaimRewards || pendingStartWithdrawal} onClick={startWithdrawal}>
+          <button
+            className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+              isStartDisabled
+                ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
+                : 'cursor-pointer bg-purple-800 text-white'
+            }`}
+            disabled={isStartDisabled}
+            onClick={isStartDisabled ? undefined : startWithdrawal}
+          >
             Start withdrawal
           </button>
         </>
