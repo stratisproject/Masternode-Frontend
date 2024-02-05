@@ -32,7 +32,7 @@ const ConnectButton = () => {
   if (connected) {
     return (
       <button className="flex gap-2 pointer-events-auto rounded-md bg-purple-900 px-3 py-2 text-[0.8125rem] font-semibold leading-5 text-white hover:bg-indigo-500" onClick={disconnect}>
-        <div>
+        <div className='text-ellipsis overflow-hidden max-w-32' title={account}>
           {account}
         </div>
         <img width="20px" height="20px" src={connection.getIcon()} alt={connection.getName()} />

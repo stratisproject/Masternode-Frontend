@@ -1,9 +1,12 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { formatEther } from 'ethers/lib/utils'
+import AOS from 'aos'
 
 import { RegistrationStatus, UserType } from 'types'
 
-import StatsCard, { StatsCardProps } from './StatsCard'
+import GLOW_IMAGE from 'assets/images/glow-bottom.svg'
+
+const glowImage = GLOW_IMAGE
 
 import {
   useRegisterUser,
@@ -32,7 +35,8 @@ import {
 
 import { WITHDRAWAL_DELAY } from '../../constants'
 
-import { CalculatorIcon, ChartBarSquareIcon } from '@heroicons/react/24/outline'
+import StatsTile, { StatsTileProps } from './StatsTile'
+import { ParticleAnimation } from 'utils/particles'
 
 const Content = () => {
   const { pending: pendingRegisterUser, registerUser } = useRegisterUser()
@@ -127,83 +131,129 @@ const Content = () => {
     completeWithdrawal,
   ])
 
-  const genericStatsData: StatsCardProps[] = [
+  const financial = (x: string) => {
+    return Number.parseFloat(x).toFixed(5)
+  }
+
+  const genericStatsData: StatsTileProps[] = [
     {
-      icon: <CalculatorIcon className="h-6 w-6 text-orange-500" />,
       title: 'MasterNode contract balance',
-      value: `${formatEther(balance)} STRAX`,
+      value: `${financial(formatEther(balance))} STRAX`,
     },
     {
-      icon: <CalculatorIcon className="h-6 w-6 text-orange-500" />,
       title: 'Total collateral amount',
-      value: `${formatEther(totalCollateralAmount)} STRAX`,
+      value: `${financial(formatEther(totalCollateralAmount))} STRAX`,
     },
     {
-      icon: <ChartBarSquareIcon className="h-6 w-6 text-orange-500" />,
       title: 'Total registrations',
       value: totalRegistrations,
     },
     {
-      icon: <ChartBarSquareIcon className="h-6 w-6 text-orange-500" />,
       title: 'Total block shares',
       value: totalBlockShares,
     },
   ]
 
-  const userStatsData: StatsCardProps[] = [
+  const userStatsData: StatsTileProps[] = [
     {
-      icon: <CalculatorIcon className="h-6 w-6 text-orange-500" />,
       title: 'Balance',
-      value: `${formatEther(userBalance)} STRAX`,
+      value: `${financial(formatEther(userBalance))} STRAX`,
     },
     {
-      icon: <CalculatorIcon className="h-6 w-6 text-orange-500" />,
       title: 'Rewards',
-      value: `${formatEther(userRewards)} STRAX`,
+      value: `${financial(formatEther(userRewards))} STRAX`,
     },
     {
-      icon: <CalculatorIcon className="h-6 w-6 text-orange-500" />,
       title: 'Collateral amount',
-      value: `${formatEther(userCollateralAmount)} STRAX`,
+      value: `${financial(formatEther(userCollateralAmount))} STRAX`,
     },
     {
-      icon: <ChartBarSquareIcon className="h-6 w-6 text-orange-500" />,
       title: 'Block shares',
       value: userBlockShares,
     },
     {
-      icon: <ChartBarSquareIcon className="h-6 w-6 text-orange-500" />,
       title: 'Last claimed block',
       value: userLastClaimedBlock,
     },
   ]
 
+  useEffect(() => {
+    AOS.init({
+      once: true,
+      disable: 'phone',
+      duration: 1000,
+      easing: 'ease-out-cubic',
+    })
+
+    const canvasElements = document.querySelectorAll('[data-particle-animation]')
+    canvasElements.forEach((canvas: any) => {
+      const options = {
+        quantity: canvas.dataset.particleQuantity,
+        staticity: canvas.dataset.particleStaticity,
+        ease: canvas.dataset.particleEase,
+      }
+      new ParticleAnimation(canvas, options)
+    })
+  }, [])
+
   return (
-    <div className="p-5 mb-5">
-      <div className="flex flex-wrap gap-4 mb-5">
-        {genericStatsData.map((data, index) => (
-          <StatsCard
-            key={index}
-            icon={data.icon}
-            title={data.title}
-            value={data.value}
-          />
-        ))}
-        {userType !== UserType.UNKNOWN ? (userStatsData.map((data, index) => (
-          <StatsCard
-            key={index}
-            icon={data.icon}
-            title={data.title}
-            value={data.value}
-          />
-        ))) : null}
-      </div>
-      {userType !== UserType.UNKNOWN ? (
-        <div className="flex items-center gap-3">
-          {renderAction()}
+    <main className="grow">
+      <section>
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6">
+
+          <div className="absolute inset-0 -z-10" aria-hidden="true">
+            <canvas data-particle-animation></canvas>
+          </div>
+
+          <div className="absolute inset-0 -z-10 -mx-28 rounded-b-[3rem] pointer-events-none overflow-hidden"
+            aria-hidden="true">
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-0 -z-10">
+              <img src={glowImage} className="max-w-none" width="2146" height="774" alt="Hero Illustration" />
+            </div>
+          </div>
+
+          <div className="pt-32 pb-16 md:pt-32 md:pb-20">
+
+            <div className="relative pb-12 md:pb-20">
+              <div className="absolute bottom-0 -mb-20 left-1/2 -translate-x-1/2 blur-2xl opacity-50 pointer-events-none"
+                aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="434" height="427">
+                  <defs>
+                    <linearGradient id="bs2-a" x1="19.609%" x2="50%" y1="14.544%" y2="100%">
+                      <stop offset="0%" stop-color="#6366F1"></stop>
+                      <stop offset="100%" stop-color="#6366F1" stop-opacity="0"></stop>
+                    </linearGradient>
+                  </defs>
+                  <path fill="url(#bs2-a)" fill-rule="evenodd" d="m346 898 461 369-284 58z"
+                    transform="translate(-346 -898)"></path>
+                </svg>
+              </div>
+              <div className="grid md:grid-cols-3 gap-6 group" data-highlighter="">
+                {genericStatsData.map((data, index) => (
+                  <StatsTile
+                    key={index}
+                    title={data.title}
+                    value={data.value}
+                  />
+                ))}
+                {userType !== UserType.UNKNOWN ? (userStatsData.map((data, index) => (
+                  <StatsTile
+                    key={index}
+                    title={data.title}
+                    value={data.value}
+                  />
+                ))) : null}
+              </div>
+              {userType !== UserType.UNKNOWN ? (
+                <div className="flex items-center gap-3 pt-4">
+                  {renderAction()}
+                </div>
+              ) : null}
+            </div>
+          </div>
         </div>
-      ) : null}
-    </div>
+      </section>
+    </main>
   )
 }
 
