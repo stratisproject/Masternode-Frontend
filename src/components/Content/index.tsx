@@ -205,10 +205,10 @@ const Content = () => {
             <canvas data-particle-animation></canvas>
           </div>
 
-          <div className="absolute inset-0 -z-10 -mx-28 rounded-b-[3rem] pointer-events-none overflow-hidden"
+          <div className="absolute inset-0 -z-10 -mx-28 pointer-events-none overflow-hidden"
             aria-hidden="true">
             <div className="absolute left-1/2 -translate-x-1/2 bottom-0 -z-10">
-              <img src={glowImage} className="max-w-none" width="2146" height="774" alt="Hero Illustration" />
+              <img src={glowImage} className="max-w-none" width="1146" height="774" alt="Hero Illustration" />
             </div>
           </div>
 
