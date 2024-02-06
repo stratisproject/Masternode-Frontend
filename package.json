@@ -2,7 +2,10 @@
   "name": "masternode-dapp",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/dapp",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "homepage": "/",
   "scripts": {
     "contracts:compile:abi": "typechain --target ethers-v5 --out-dir src/constants/abis/types \"./src/constants/abis/**/*.json\"",
     "prestart": "yarn contracts:compile:abi",
