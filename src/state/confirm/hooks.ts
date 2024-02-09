@@ -34,7 +34,7 @@ export function useShowClaimModal() {
   const strax = financial(formatEther(rewards))
   return useCallback(async () => {
     dispatch(setShow({ isClaim: true, text: `You are attempting to claim ${strax} STRAX. Once confirmed, you will receive a prompt in your MetaMask wallet. Would you plike to proceed?` }))
-  }, [])
+  }, [strax])
 }
 
 export function useHideModal() {
