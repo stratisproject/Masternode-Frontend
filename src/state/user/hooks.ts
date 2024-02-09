@@ -19,6 +19,7 @@ import {
   setLastClaimedBlock,
   setSinceLastClaim,
   setBlockShares,
+  setTotalSeconds,
 } from './reducer'
 
 export function useUpdateBalance() {
@@ -114,6 +115,35 @@ export function useUpdateBlockShares() {
   }, [account, contract])
 }
 
+export function useUpdateTotalSeconds() {
+  const { account } = useWeb3React()
+  const contract = useMasterNodeContract()
+  const dispatch = useAppDispatch()
+  const offset = 100800
+  const blockTime = 16
+
+  return useCallback(async () => {
+
+    if (!contract || !account) {
+      dispatch(setTotalSeconds(0))
+      return
+    }
+
+    const registrationStatus = await contract.registrationStatus(account)
+
+    if (registrationStatus !== RegistrationStatus.WITHDRAWING) {
+      dispatch(setTotalSeconds(0))
+      return
+    }
+
+    const lastClaimedBlock = await contract.lastClaimedBlock(account)
+    const blockNumber = await contract.provider.getBlockNumber()
+    const totalSeconds = (blockNumber + offset - lastClaimedBlock.toNumber()) * blockTime
+
+    dispatch(setTotalSeconds(totalSeconds))
+  }, [contract, dispatch])
+}
+
 export function useUpdateType() {
   const { account } = useWeb3React()
   const contract = useMasterNodeContract()
@@ -167,6 +197,10 @@ export function useUserBlockShares() {
 
 export function useUserType() {
   return useAppSelector(state => state.user.type)
+}
+
+export function useTotalSeconds() {
+  return useAppSelector(state => state.user.totalSeconds)
 }
 
 export function useUserCollateralAmount() {

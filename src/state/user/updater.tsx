@@ -9,6 +9,7 @@ import {
   useUpdateLastClaimedBlock,
   useUpdateRegistrationStatus,
   useUpdateType,
+  useUpdateTotalSeconds,
 } from './hooks'
 
 export default function Updater() {
@@ -18,6 +19,7 @@ export default function Updater() {
   const updateLastClaimedBlock = useUpdateLastClaimedBlock()
   const updateRegistrationStatus = useUpdateRegistrationStatus()
   const updateType = useUpdateType()
+  const updateTotalSeconds = useUpdateTotalSeconds()
 
   const updateData = useCallback(async () => {
     updateBalance()
@@ -26,6 +28,7 @@ export default function Updater() {
     updateLastClaimedBlock()
     updateRegistrationStatus()
     updateType()
+    updateTotalSeconds()
   }, [
     updateBalance,
     updateRewards,
@@ -33,6 +36,7 @@ export default function Updater() {
     updateLastClaimedBlock,
     updateRegistrationStatus,
     updateType,
+    updateTotalSeconds,
   ])
 
   useInterval(updateData, 3000)

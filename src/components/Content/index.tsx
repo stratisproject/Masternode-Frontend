@@ -9,6 +9,16 @@ import GLOW_IMAGE from 'assets/images/glow-bottom.svg'
 const glowImage = GLOW_IMAGE
 
 import {
+  useShow,
+  useShowWithdrawModal,
+  useShowClaimModal,
+  useHideModal,
+  useContent,
+  useIsClaim,
+  //useContent,
+} from 'state/confirm/hooks'
+
+import {
   useRegisterUser,
   useClaimRewards,
   useStartWithdrawal,
@@ -24,6 +34,7 @@ import {
   useUserRegistrationStatus,
   useUserType,
   useUserCollateralAmount,
+  useTotalSeconds,
 } from 'state/user/hooks'
 
 import {
@@ -37,6 +48,8 @@ import { WITHDRAWAL_DELAY } from '../../constants'
 
 import StatsTile, { StatsTileProps } from './StatsTile'
 import { ParticleAnimation } from 'utils/particles'
+import ConfirmModal from 'components/ConfirmModal'
+import CountdownTimer from 'components/CountdownTimer'
 
 const Content = () => {
   const { pending: pendingRegisterUser, registerUser } = useRegisterUser()
@@ -48,6 +61,7 @@ const Content = () => {
   const totalCollateralAmount = useTotalCollateralAmount()
   const totalBlockShares = useTotalBlockShares()
   const totalRegistrations = useTotalRegistrations()
+  const totalSeconds = useTotalSeconds()
 
   const userType = useUserType()
   const userBalance = useUserBalance()
@@ -58,22 +72,41 @@ const Content = () => {
   const userRegistrationStatus = useUserRegistrationStatus()
   const userCollateralAmount = useUserCollateralAmount()
 
+  //const userConfirmed = useConfirmed()
+  const showModal = useShow()
+  const confirmMessage = useContent()
+  const isClaim = useIsClaim()
+
+  const hideModal = useHideModal()
+
+  const showClaimConfirmation = useShowClaimModal()
+
+  const showWithdrawConfirmation = useShowWithdrawModal()
+
   const renderAction = useCallback(() => {
     if (userRegistrationStatus === RegistrationStatus.UNREGISTERED) {
       const isDisabled = pendingRegisterUser || userBalance.lt(userCollateralAmount)
 
       return (
-        <button
-          className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
-            isDisabled
-              ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
-              : 'cursor-pointer bg-purple-800 text-white'
-          }`}
-          disabled={isDisabled}
-          onClick={isDisabled ? undefined : registerUser}
-        >
-          Register
-        </button>
+        <>
+          <button
+            className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+              isDisabled
+                ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
+                : 'cursor-pointer bg-purple-800 text-white'
+            }`}
+            disabled={isDisabled}
+            onClick={isDisabled ? undefined : registerUser}
+          >
+            Register
+          </button>
+          <button
+            className="rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500"
+            onClick={showClaimConfirmation}
+          >
+            Show
+          </button>
+        </>
       )
     } else if (userRegistrationStatus === RegistrationStatus.REGISTERED) {
       const isClaimDisabled = userRewards.eq(0) || pendingClaimRewards || pendingStartWithdrawal
@@ -88,7 +121,7 @@ const Content = () => {
                 : 'cursor-pointer bg-purple-800 text-white'
             }`}
             disabled={isClaimDisabled}
-            onClick={isClaimDisabled ? undefined : claimRewards}
+            onClick={isClaimDisabled ? undefined : showClaimConfirmation}
           >
             Claim rewards
           </button>
@@ -99,7 +132,7 @@ const Content = () => {
                 : 'cursor-pointer bg-purple-800 text-white'
             }`}
             disabled={isStartDisabled}
-            onClick={isStartDisabled ? undefined : startWithdrawal}
+            onClick={isStartDisabled ? undefined : showWithdrawConfirmation}
           >
             Start withdrawal
           </button>
@@ -108,9 +141,22 @@ const Content = () => {
     } else if (userRegistrationStatus === RegistrationStatus.WITHDRAWING) {
       const disabled = pendingCompleteWithdrawal || userSinceLastClaim < WITHDRAWAL_DELAY
       return (
-        <button disabled={disabled} onClick={completeWithdrawal}>
-          Complete withdrawal
-        </button>
+        <>
+          <button
+            className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+              disabled
+                ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
+                : 'cursor-pointer bg-purple-800 text-white'
+            }`}
+            disabled={disabled}
+            onClick={disabled ? undefined : completeWithdrawal}
+          >
+            Complete withdrawal
+          </button>
+          <div>
+            {totalSeconds === 0 ? <span>Calculating time...</span> : <CountdownTimer totalSeconds={totalSeconds} />}
+          </div>
+        </>
       )
     }
 
@@ -253,8 +299,32 @@ const Content = () => {
           </div>
         </div>
       </section>
+      {showModal && (
+        <ConfirmModal
+          title="Confirm Action"
+          body={confirmMessage}
+          confirmText="Confirm"
+          cancelText="Cancel"
+          onConfirm={() => {
+            hideModal().then(() => {
+              if (isClaim) {
+                claimRewards()
+              } else {
+                startWithdrawal()
+              }
+            })
+          }}
+          onCancel={() => {
+            hideModal()
+          }}
+          onClose={() => {
+            hideModal()
+          }}
+        />
+      )}
     </main>
   )
 }
 
 export default Content
+
