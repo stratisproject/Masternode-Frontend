@@ -101,7 +101,7 @@ const Content = () => {
             Register
           </button>
           <span className='text-xs text-red-400'>
-            { isDisabled ? `You do not have the required collateral to register. Please ensure you have a balance of ${formatEther(COLLATERAL_AMOUNT)} STRAX before trying to register` : null}
+            { userBalance.lt(userCollateralAmount) ? `You do not have the required collateral to register. Please ensure you have a balance of ${formatEther(COLLATERAL_AMOUNT)} STRAX before trying to register` : null}
           </span>
         </>
       )
