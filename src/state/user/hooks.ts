@@ -138,7 +138,7 @@ export function useUpdateTotalSeconds() {
 
     const lastClaimedBlock = await contract.lastClaimedBlock(account)
     const blockNumber = await contract.provider.getBlockNumber()
-    const totalSeconds = (blockNumber + offset - lastClaimedBlock.toNumber()) * blockTime
+    const totalSeconds = (lastClaimedBlock.toNumber() + offset - blockNumber) * blockTime
 
     dispatch(setTotalSeconds(totalSeconds))
   }, [contract, dispatch])
