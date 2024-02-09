@@ -24,7 +24,7 @@ export function useShowWithdrawModal() {
   const dispatch = useAppDispatch()
 
   return useCallback(async () => {
-    dispatch(setShow({ isClaim: false, text: 'You are attempting to withdraw your collateral. This will have a mandatory colling off period of approximately 2 weeks. Are you sure you want to continue?' }))
+    dispatch(setShow({ isClaim: false, text: 'You are attempting to withdraw your collateral. This will have a mandatory cooling off period of approximately 2 weeks. Are you sure you want to continue?' }))
   }, [])
 }
 
