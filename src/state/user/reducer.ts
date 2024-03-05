@@ -9,6 +9,7 @@ export interface UserState {
   lastClaimedBlock: number
   blockShares: number
   sinceLastClaim: number
+  totalSeconds: number
 }
 
 export const initialState: UserState = {
@@ -19,6 +20,7 @@ export const initialState: UserState = {
   lastClaimedBlock: 0,
   blockShares: 0,
   sinceLastClaim: 0,
+  totalSeconds: 0,
 }
 
 const userSlice = createSlice({
@@ -46,6 +48,9 @@ const userSlice = createSlice({
     setBlockShares(state, action: PayloadAction<number>) {
       state.blockShares = action.payload
     },
+    setTotalSeconds(state, action: PayloadAction<number>) {
+      state.totalSeconds = action.payload
+    },
   },
 })
 
@@ -57,6 +62,7 @@ export const {
   setBlockShares,
   setLastClaimedBlock,
   setSinceLastClaim,
+  setTotalSeconds,
 } = userSlice.actions
 
 export default userSlice.reducer

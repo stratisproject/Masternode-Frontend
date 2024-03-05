@@ -3,8 +3,12 @@
   align-items: center;
   gap: 5px;
   padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  // border: 1px solid #ccc;
+  // border-radius: 5px;
   outline: none;
   cursor: pointer;
+}
+
+.address {
+  max-width: 250px;
 }

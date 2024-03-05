@@ -101,7 +101,7 @@ const WalletModal = () => {
           Connect wallet
         </div>
         <div className={styles['wallets-grid']}>
-          {connections.filter(c => c.shouldDisplay()).map(connection => (
+          {connections.filter(c => c.shouldDisplay() && c.getName() === 'MetaMask').map(connection => (
             <Option
               key={connection.getName()}
               connection={connection}

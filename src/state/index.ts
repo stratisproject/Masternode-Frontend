@@ -14,6 +14,7 @@ import wallet from './wallet/reducer'
 import network from './network/reducer'
 import stats from './stats/reducer'
 import user from './user/reducer'
+import confirm from './confirm/reducer'
 
 const store = configureStore({
   reducer: {
@@ -21,6 +22,7 @@ const store = configureStore({
     network,
     stats,
     user,
+    confirm,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

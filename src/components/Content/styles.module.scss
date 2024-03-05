@@ -1,33 +1,4 @@
-.content {
-  margin-top: 20px;
-  padding: 0 20px;
-}
-
-.stats {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-
-  .box {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    padding: 10px;
-
-    border: 1px solid #ccc;
-    border-radius: 5px;
-
-    .title {
-      margin-bottom: 10px;
-    }
-
-    .value {}
-  }
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.box {
+  --mouse-x: 367px;
+  --mouse-y: 52.0625px;
 }

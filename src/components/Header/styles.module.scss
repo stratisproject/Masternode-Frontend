@@ -1,6 +1,16 @@
 .header {
   padding: 10px 20px;
   border-bottom: 1px solid #ccc;
+  background-color: #fff;
+  display: flex;
+  justify-content: space-between;
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+  }
 
   .content {
     display: flex;

@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { PersistGate } from 'redux-persist/integration/react'
 
+import { MetaMaskProvider } from '@metamask/sdk-react'
+
 import store, { persistor } from 'state'
 import Updater from 'state/updater'
 
@@ -23,7 +25,9 @@ root.render(
       <PersistGate loading={null} persistor={persistor}>
         <Web3Provider>
           <Updater />
-          <App />
+          <MetaMaskProvider sdkOptions={{dappMetadata: {name: 'Test', url: window.location.href}}} debug={false}>
+            <App />
+          </MetaMaskProvider>
           <WalletModal />
         </Web3Provider>
       </PersistGate>

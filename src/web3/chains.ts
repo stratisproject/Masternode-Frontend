@@ -1,6 +1,6 @@
 import type { AddEthereumChainParameter } from '@web3-react/types'
 
-import STRATIS_ICON from 'assets/images/networks/stratis.jpeg'
+import STRATIS_ICON from 'assets/images/networks/stratis_logo_white.svg'
 
 export enum ChainId {
   STRATIS = 105105,
@@ -11,7 +11,7 @@ export const DEFAULT_CHAIN_ID = ChainId.AURORIA
 
 export const STRATIS_CURRENCY: AddEthereumChainParameter['nativeCurrency'] = {
   name: 'Stratis',
-  symbol: 'STRAT',
+  symbol: 'STRAX',
   decimals: 18,
 }
 
