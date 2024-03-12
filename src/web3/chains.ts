@@ -7,7 +7,7 @@ export enum ChainId {
   AURORIA = 205205,
 }
 
-export const DEFAULT_CHAIN_ID = ChainId.AURORIA
+export const DEFAULT_CHAIN_ID = ChainId.STRATIS
 
 export const STRATIS_CURRENCY: AddEthereumChainParameter['nativeCurrency'] = {
   name: 'Stratis',
@@ -59,8 +59,9 @@ export const CHAINS: ChainConfig = {
     id: ChainId.STRATIS,
     name: 'Stratis',
     icon: STRATIS_ICON,
-    urls: [],
+    urls: ['https://rpc.stratisevm.com'],
     nativeCurrency: STRATIS_CURRENCY,
+    blockExplorerUrls: ['https://explorer.stratisevm.com'],
     available: false,
     testnet: false,
   },
