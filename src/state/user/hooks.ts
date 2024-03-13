@@ -7,9 +7,9 @@ import { useMasterNodeContract } from 'hooks/useContract'
 import { useAppDispatch, useAppSelector } from 'state'
 import { RegistrationStatus, UserType } from 'types'
 
-import { useContractBalance, useTotalCollateralAmount, useTotalBlockShares } from 'state/stats/hooks'
+import { useContractBalance, useTotalCollateralAmount, useTotalBlockShares, useTotalRegistrations } from 'state/stats/hooks'
 
-import { COLLATERAL_AMOUNT, COLLATERAL_AMOUNT_10K, COLLATERAL_AMOUNT_50K } from '../../constants'
+import { COLLATERAL_AMOUNT, COLLATERAL_AMOUNT_LEGACY } from '../../constants'
 
 import {
   setBalance,
@@ -37,6 +37,8 @@ export function useUpdateBalance() {
 }
 
 export function useUpdateRewards() {
+  const { account } = useWeb3React()
+  const contract = useMasterNodeContract()
   const dispatch = useAppDispatch()
   const userStatus = useUserRegistrationStatus()
   const sinceLastClaim = useUserSinceLastClaim()
@@ -44,14 +46,25 @@ export function useUpdateRewards() {
   const lastClaimedBlock = useUserLastClaimedBlock()
   const totalCollateralAmount = useTotalCollateralAmount()
   const totalBlockShares = useTotalBlockShares()
+  const totalRegistrations = useTotalRegistrations()
 
   return useCallback(async () => {
-    if (userStatus !== RegistrationStatus.REGISTERED || totalBlockShares === 0 || sinceLastClaim === 0) {
+    if (!account || !contract || userStatus !== RegistrationStatus.REGISTERED || totalBlockShares === 0 || sinceLastClaim === 0 || totalRegistrations === 0) {
       dispatch(setRewards('0'))
       return
     }
 
-    const value = contractBalance.sub(totalCollateralAmount).mul(sinceLastClaim).div(totalBlockShares)
+    const existingDividends = await contract.totalDividends()
+    const lastBalance = await contract.lastBalance()
+    const withdrawingCollateralAmount = await contract.withdrawingCollateralAmount()
+
+    const amount = contractBalance.sub(lastBalance).sub(totalCollateralAmount).sub(withdrawingCollateralAmount)
+
+    const newTotalDividends = existingDividends.add(amount.div(totalRegistrations))
+    const userLastDividends = await (await contract.accounts(account)).lastDividends
+
+    const value = newTotalDividends.sub(userLastDividends)
+
     dispatch(setRewards(value.toString()))
   }, [
     userStatus,
@@ -92,26 +105,19 @@ export function useUpdateLastClaimedBlock() {
 
     const currentBlock = await provider.getBlockNumber()
 
-    const val = await contract.lastClaimedBlock(account)
+    const val = (await contract.accounts(account)).lastClaimedBlock
     dispatch(setLastClaimedBlock(val.toNumber()))
     dispatch(setSinceLastClaim(currentBlock - val.toNumber()))
   }, [account, provider, contract, dispatch])
 }
 
 export function useUpdateBlockShares() {
-  const { account } = useWeb3React()
-  const contract = useMasterNodeContract()
   const dispatch = useAppDispatch()
 
   return useCallback(async () => {
-    if (!contract || !account) {
-      dispatch(setBlockShares(0))
-      return
-    }
-
-    const val = await contract.checkBlockShares(account)
-    dispatch(setBlockShares(val.toNumber()))
-  }, [account, contract])
+    dispatch(setBlockShares(0))
+    return
+  }, [dispatch])
 }
 
 export function useUpdateType() {
@@ -125,16 +131,12 @@ export function useUpdateType() {
       return
     }
 
-    const isLegacy10K = await contract.legacy10K(account)
-    if (isLegacy10K) {
-      setType(UserType.LEGACY_10K)
+    const isLegacy = await contract.legacy(account)
+    if (isLegacy) {
+      setType(UserType.LEGACY)
       return
     }
-    const isLegacy50K = await contract.legacy50K(account)
-    if (isLegacy50K) {
-      setType(UserType.LEGACY_50K)
-      return
-    }
+
     dispatch(setType(UserType.REGULAR))
   }, [account, contract])
 }
@@ -171,10 +173,8 @@ export function useUserType() {
 
 export function useUserCollateralAmount() {
   const type = useUserType()
-  if (type === UserType.LEGACY_10K) {
-    return COLLATERAL_AMOUNT_10K
-  } else if (type === UserType.LEGACY_50K) {
-    return COLLATERAL_AMOUNT_50K
+  if (type === UserType.LEGACY) {
+    return COLLATERAL_AMOUNT_LEGACY
   } else if (type === UserType.REGULAR) {
     return COLLATERAL_AMOUNT
   }
