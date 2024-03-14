@@ -61,22 +61,12 @@ export function useUpdateTotalCollateralAmount() {
 }
 
 export function useUpdateTotalBlockShares() {
-  const contract = useMasterNodeContract()
   const dispatch = useAppDispatch()
 
   return useCallback(async () => {
-    if (!contract) {
-      dispatch(setTotalBlockShares(0))
-      return
-    }
-
-    const totalRegistrations = await contract.totalRegistrations()
-    const lastBlockShareUpdate = await contract.lastBlock()
-    const blockNumber = await contract.provider.getBlockNumber()
-    const val = await contract.totalBlockShares()
-
-    dispatch(setTotalBlockShares(val.toNumber() + ((blockNumber - lastBlockShareUpdate.toNumber()) * totalRegistrations.toNumber())))
-  }, [contract, dispatch])
+    dispatch(setTotalBlockShares(0))
+    return
+  }, [dispatch])
 }
 
 export function useContractBalance() {

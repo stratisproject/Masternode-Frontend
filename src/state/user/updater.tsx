@@ -5,7 +5,6 @@ import useInterval from 'hooks/useInterval'
 import {
   useUpdateBalance,
   useUpdateRewards,
-  useUpdateBlockShares,
   useUpdateLastClaimedBlock,
   useUpdateRegistrationStatus,
   useUpdateType,
@@ -15,7 +14,6 @@ import {
 export default function Updater() {
   const updateBalance = useUpdateBalance()
   const updateRewards = useUpdateRewards()
-  const updateBlockShares = useUpdateBlockShares()
   const updateLastClaimedBlock = useUpdateLastClaimedBlock()
   const updateRegistrationStatus = useUpdateRegistrationStatus()
   const updateType = useUpdateType()
@@ -24,7 +22,6 @@ export default function Updater() {
   const updateData = useCallback(async () => {
     updateBalance()
     updateRewards()
-    updateBlockShares()
     updateLastClaimedBlock()
     updateRegistrationStatus()
     updateType()
@@ -32,7 +29,6 @@ export default function Updater() {
   }, [
     updateBalance,
     updateRewards,
-    updateBlockShares,
     updateLastClaimedBlock,
     updateRegistrationStatus,
     updateType,

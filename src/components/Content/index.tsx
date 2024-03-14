@@ -28,7 +28,6 @@ import {
 import {
   useUserBalance,
   useUserRewards,
-  useUserBlockShares,
   useUserLastClaimedBlock,
   useUserSinceLastClaim,
   useUserRegistrationStatus,
@@ -40,7 +39,6 @@ import {
 import {
   useContractBalance,
   useTotalCollateralAmount,
-  useTotalBlockShares,
   useTotalRegistrations,
 } from 'state/stats/hooks'
 
@@ -59,14 +57,12 @@ const Content = () => {
 
   const balance = useContractBalance()
   const totalCollateralAmount = useTotalCollateralAmount()
-  const totalBlockShares = useTotalBlockShares()
   const totalRegistrations = useTotalRegistrations()
   const totalSeconds = useTotalSeconds()
 
   const userType = useUserType()
   const userBalance = useUserBalance()
   const userRewards = useUserRewards()
-  const userBlockShares = useUserBlockShares()
   const userLastClaimedBlock = useUserLastClaimedBlock()
   const userSinceLastClaim = useUserSinceLastClaim()
   const userRegistrationStatus = useUserRegistrationStatus()
@@ -192,16 +188,12 @@ const Content = () => {
       value: totalRegistrations,
     },
     {
-      title: 'Total block shares',
-      value: totalBlockShares,
+      title: 'Balance',
+      value: `${financial(formatEther(userBalance))} STRAX`,
     },
   ]
 
   const userStatsData: StatsTileProps[] = [
-    {
-      title: 'Balance',
-      value: `${financial(formatEther(userBalance))} STRAX`,
-    },
     {
       title: 'Rewards',
       value: `${financial(formatEther(userRewards))} STRAX`,
@@ -209,10 +201,6 @@ const Content = () => {
     {
       title: 'Collateral amount',
       value: `${financial(formatEther(userCollateralAmount))} STRAX`,
-    },
-    {
-      title: 'Block shares',
-      value: userBlockShares,
     },
     {
       title: 'Last claimed block',
