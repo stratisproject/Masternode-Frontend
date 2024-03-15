@@ -163,7 +163,7 @@ export function useUpdateType() {
 
     const isLegacy = await contract.legacy(account)
     if (isLegacy) {
-      setType(UserType.LEGACY)
+      dispatch(setType(UserType.LEGACY))
       return
     }
     dispatch(setType(UserType.REGULAR))
