@@ -50,7 +50,7 @@ export function useUpdateRewards() {
   const totalRegistrations = useTotalRegistrations()
 
   return useCallback(async () => {
-    if (!account || !contract || userStatus !== RegistrationStatus.REGISTERED || totalBlockShares === 0 || sinceLastClaim === 0 || totalRegistrations === 0) {
+    if (!account || !contract || userStatus !== RegistrationStatus.REGISTERED || sinceLastClaim === 0 || totalRegistrations === 0) {
       dispatch(setRewards('0'))
       return
     }
