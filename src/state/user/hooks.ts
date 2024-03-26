@@ -126,7 +126,7 @@ export function useUpdateTotalSeconds() {
   const contract = useMasterNodeContract()
   const dispatch = useAppDispatch()
   const offset = 100800
-  const blockTime = 16
+  const blockTime = 15
 
   return useCallback(async () => {
 
