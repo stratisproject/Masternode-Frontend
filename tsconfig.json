@@ -23,9 +23,5 @@
   },
   "include": [
     "src"
-  ],
-  "exclude": [
-    "node_modules",
-    "src/constants/abis/types/*.ts"
   ]
 }

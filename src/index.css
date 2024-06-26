@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Avenir";
+  src: url("./assets/Avenir.ttf");
+}
+body {
+  margin: 0;
+  background-color: white;
+  color: rgb(70, 70, 70);
+  font-family: "Avenir";
+  font-size: 14px;
+}
+
+.m-button {
+  @apply border border-gray-300 rounded-4 p-8 outline-none bg-gray-100 overflow-hidden text-ellipsis whitespace-nowrap disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-8;
+}

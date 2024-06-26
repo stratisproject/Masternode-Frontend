@@ -1,7 +1,7 @@
 export enum RegistrationStatus {
   UNREGISTERED,
   REGISTERED,
-  WITHDRAWING
+  WITHDRAWING,
 }
 
 export enum UserType {

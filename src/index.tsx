@@ -1,37 +1,46 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { Provider } from 'react-redux'
-import { PersistGate } from 'redux-persist/integration/react'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { RainbowKitProvider, getDefaultConfig } from "@rainbow-me/rainbowkit";
+import { metaMaskWallet, rainbowWallet, bitgetWallet, walletConnectWallet } from "@rainbow-me/rainbowkit/wallets";
+import { WagmiProvider } from "wagmi";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { auroria } from "viem/chains";
 
-import store, { persistor } from 'state'
-import Updater from 'state/updater'
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
 
-import Web3Provider from 'components/Web3Provider'
-import WalletModal from 'components/WalletModal'
+import "./index.css";
+import "@rainbow-me/rainbowkit/styles.css";
 
-import App from './App'
-import reportWebVitals from './reportWebVitals'
+const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 
-import './index.scss'
+const config = getDefaultConfig({
+  appName: "masternode dAPP",
+  projectId: "YOUR_PROJECT_ID",
+  chains: [auroria],
+  wallets: [
+    {
+      groupName: "Recommended",
+      wallets: [metaMaskWallet, walletConnectWallet, rainbowWallet, bitgetWallet],
+    },
+  ],
+});
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement,
-)
+const queryClient = new QueryClient();
+
 root.render(
   <React.StrictMode>
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <Web3Provider>
-          <Updater />
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>
           <App />
-          <WalletModal />
-        </Web3Provider>
-      </PersistGate>
-    </Provider>
-  </React.StrictMode>,
-)
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+  </React.StrictMode>
+);
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals()
+reportWebVitals();
