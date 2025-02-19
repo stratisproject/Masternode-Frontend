@@ -18,6 +18,7 @@ import {
   useTotalDividends,
   useLastBalance,
   useWithdrawingCollateralAmount,
+  useTotalTokensBalance,
 } from 'state/stats/hooks'
 
 import {
@@ -168,6 +169,7 @@ export function useUserRewards() {
   const totalRegistrations = useTotalRegistrations()
   const totalDividends = useTotalDividends()
   const totalCollateralAmount = useTotalCollateralAmount()
+  const totalTokensBalance = useTotalTokensBalance()
   const lastBalance = useLastBalance()
   const withdrawingCollateralAmount = useWithdrawingCollateralAmount()
 
@@ -176,7 +178,7 @@ export function useUserRewards() {
       return BigNumber.from(0)
     }
 
-    const amount = contractBalance.sub(lastBalance).sub(totalCollateralAmount).sub(withdrawingCollateralAmount)
+    const amount = contractBalance.sub(totalTokensBalance).sub(lastBalance).sub(totalCollateralAmount).sub(withdrawingCollateralAmount)
     const newTotalDividends = totalDividends.add(amount.div(totalRegistrations))
 
     return newTotalDividends.sub(lastDividends)
@@ -189,6 +191,7 @@ export function useUserRewards() {
     totalRegistrations,
     totalDividends.toString(),
     totalCollateralAmount.toString(),
+    totalTokensBalance.toString(),
     lastBalance.toString(),
     withdrawingCollateralAmount.toString(),
   ])
