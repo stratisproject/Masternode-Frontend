@@ -20,13 +20,16 @@ import {
 
 import {
   useRegisterUser,
+  useRegisterUserLSSToken,
   useClaimRewards,
   useStartWithdrawal,
   useCompleteWithdrawal,
+  useEnableLSSTokenSupport,
 } from 'hooks/useMasterNode'
 
 import {
   useUserBalance,
+  useUserLSSTokenBalance,
   useUserRewards,
   useUserLastClaimedBlock,
   useUserSinceLastClaim,
@@ -38,11 +41,12 @@ import {
 
 import {
   useContractBalance,
+  useIsLSSTokenSupported,
+  useIsOwner,
   useTotalCollateralAmount,
   useTotalRegistrations,
+  useWithdrawalDelay,
 } from 'state/stats/hooks'
-
-import { WITHDRAWAL_DELAY, COLLATERAL_AMOUNT } from '../../constants'
 
 import StatsTile, { StatsTileProps } from './StatsTile'
 import { ParticleAnimation } from 'utils/particles'
@@ -51,17 +55,23 @@ import CountdownTimer from 'components/CountdownTimer'
 
 const Content = () => {
   const { pending: pendingRegisterUser, registerUser } = useRegisterUser()
+  const { pending: pendingRegisterUserLSSToken, registerUserLSSToken } = useRegisterUserLSSToken()
   const { pending: pendingClaimRewards, claimRewards } = useClaimRewards()
   const { pending: pendingStartWithdrawal, startWithdrawal } = useStartWithdrawal()
   const { pending: pendingCompleteWithdrawal, completeWithdrawal } = useCompleteWithdrawal()
+  const { pending: pendingEnableLSSTokenSupport, enableLSSTokenSupport } = useEnableLSSTokenSupport()
 
   const balance = useContractBalance()
   const totalCollateralAmount = useTotalCollateralAmount()
   const totalRegistrations = useTotalRegistrations()
   const totalSeconds = useTotalSeconds()
+  const withdrawalDelay = useWithdrawalDelay()
+  const isOwner = useIsOwner()
+  const isLSSTokenSupported = useIsLSSTokenSupported()
 
   const userType = useUserType()
   const userBalance = useUserBalance()
+  const userLSSTokenBalance = useUserLSSTokenBalance()
   const userRewards = useUserRewards()
   const userLastClaimedBlock = useUserLastClaimedBlock()
   const userSinceLastClaim = useUserSinceLastClaim()
@@ -81,25 +91,44 @@ const Content = () => {
 
   const renderAction = useCallback(() => {
     if (userRegistrationStatus === RegistrationStatus.UNREGISTERED) {
-      const isDisabled = pendingRegisterUser || userBalance.lt(userCollateralAmount)
+      const isDisabledRegularRegister = pendingRegisterUser || userBalance.lt(userCollateralAmount)
+      const isDisabledLSSTokenRegister = pendingRegisterUserLSSToken || userLSSTokenBalance.lt(userCollateralAmount)
 
       return (
-        <>
-          <button
-            className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
-              isDisabled
-                ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
-                : 'cursor-pointer bg-purple-800 text-white'
-            }`}
-            disabled={isDisabled}
-            onClick={isDisabled ? undefined : registerUser}
-          >
-            Register
-          </button>
-          <span className='text-xs text-red-400'>
-            { userBalance.lt(userCollateralAmount) ? `You do not have the required collateral to register. Please ensure you have a balance of ${formatEther(COLLATERAL_AMOUNT)} STRAX before trying to register` : null}
-          </span>
-        </>
+        <div className="flex flex-col gap-2">
+          <div>
+            <button
+              className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+                (isDisabledRegularRegister || pendingRegisterUserLSSToken)
+                  ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
+                  : 'cursor-pointer bg-purple-800 text-white'
+              }`}
+              disabled={isDisabledRegularRegister || pendingRegisterUserLSSToken}
+              onClick={(isDisabledRegularRegister || pendingRegisterUserLSSToken) ? undefined : registerUser}
+            >
+              Register
+            </button>
+            <span className='text-xs text-red-400'>
+              { userBalance.lt(userCollateralAmount) ? ` You do not have the required collateral to register. Please ensure you have a balance of ${formatEther(userCollateralAmount)} STRAX before trying to register` : null}
+            </span>
+          </div>
+          <div>
+            <button
+              className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+                (isDisabledLSSTokenRegister || pendingRegisterUser)
+                  ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
+                  : 'cursor-pointer bg-purple-800 text-white'
+              }`}
+              disabled={isDisabledLSSTokenRegister || pendingRegisterUser}
+              onClick={(isDisabledLSSTokenRegister || pendingRegisterUser) ? undefined : registerUserLSSToken}
+            >
+              Register LSS Token
+            </button>
+            <span className='text-xs text-red-400'>
+              { userLSSTokenBalance.lt(userCollateralAmount) ? ` You do not have the required collateral to register. Please ensure you have a balance of ${formatEther(userCollateralAmount)} lssSTRAX before trying to register` : null}
+            </span>
+          </div>
+        </div>
       )
     } else if (userRegistrationStatus === RegistrationStatus.REGISTERED) {
       const isClaimDisabled = userRewards.eq(0) || pendingClaimRewards || pendingStartWithdrawal
@@ -132,7 +161,7 @@ const Content = () => {
         </>
       )
     } else if (userRegistrationStatus === RegistrationStatus.WITHDRAWING) {
-      const disabled = pendingCompleteWithdrawal || userSinceLastClaim < WITHDRAWAL_DELAY
+      const disabled = pendingCompleteWithdrawal || userSinceLastClaim < withdrawalDelay
       return (
         <>
           <button
@@ -155,16 +184,20 @@ const Content = () => {
 
     return null
   }, [
-    userBalance,
-    userRewards,
-    userCollateralAmount,
+    userBalance.toString(),
+    userLSSTokenBalance.toString(),
+    userRewards.toString(),
+    userCollateralAmount.toString(),
     userRegistrationStatus,
     userSinceLastClaim,
+    withdrawalDelay,
     pendingRegisterUser,
+    pendingRegisterUserLSSToken,
     pendingClaimRewards,
     pendingStartWithdrawal,
     pendingCompleteWithdrawal,
     registerUser,
+    registerUserLSSToken,
     claimRewards,
     startWithdrawal,
     completeWithdrawal,
@@ -190,6 +223,10 @@ const Content = () => {
     {
       title: 'Balance',
       value: `${financial(formatEther(userBalance))} STRAX`,
+    },
+    {
+      title: 'LSS Token Balance',
+      value: `${financial(formatEther(userLSSTokenBalance))} lssSTRAX`,
     },
   ]
 
@@ -244,18 +281,17 @@ const Content = () => {
           </div>
 
           <div className="pt-32 pb-16 md:pt-32 md:pb-20">
-
             <div className="relative pb-12 md:pb-20">
               <div className="absolute bottom-0 -mb-20 left-1/2 -translate-x-1/2 blur-2xl opacity-50 pointer-events-none"
                 aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" width="434" height="427">
                   <defs>
                     <linearGradient id="bs2-a" x1="19.609%" x2="50%" y1="14.544%" y2="100%">
-                      <stop offset="0%" stop-color="#6366F1"></stop>
-                      <stop offset="100%" stop-color="#6366F1" stop-opacity="0"></stop>
+                      <stop offset="0%" stopColor="#6366F1"></stop>
+                      <stop offset="100%" stopColor="#6366F1" stopOpacity="0"></stop>
                     </linearGradient>
                   </defs>
-                  <path fill="url(#bs2-a)" fill-rule="evenodd" d="m346 898 461 369-284 58z"
+                  <path fill="url(#bs2-a)" fillRule="evenodd" d="m346 898 461 369-284 58z"
                     transform="translate(-346 -898)"></path>
                 </svg>
               </div>
@@ -281,6 +317,21 @@ const Content = () => {
                 </div>
               ) : null}
             </div>
+            {(!isLSSTokenSupported && isOwner) ? (
+              <div>
+                <button
+                  className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+                    pendingEnableLSSTokenSupport
+                      ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
+                      : 'cursor-pointer bg-purple-800 text-white'
+                  }`}
+                  disabled={pendingEnableLSSTokenSupport}
+                  onClick={pendingEnableLSSTokenSupport ? undefined : enableLSSTokenSupport}
+                >
+                  Enable LSS Token support
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>

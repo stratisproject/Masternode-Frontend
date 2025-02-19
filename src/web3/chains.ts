@@ -3,10 +3,11 @@ import type { AddEthereumChainParameter } from '@web3-react/types'
 import STRATIS_ICON from 'assets/images/networks/stratis_logo_white.svg'
 
 export enum ChainId {
-  STRATIS = 105105
+  STRATIS = 105105,
+  AURORIA = 205205,
 }
 
-export const DEFAULT_CHAIN_ID = ChainId.STRATIS
+export const DEFAULT_CHAIN_ID = ChainId.AURORIA
 
 export const STRATIS_CURRENCY: AddEthereumChainParameter['nativeCurrency'] = {
   name: 'Strax',
@@ -56,17 +57,27 @@ type ChainConfig = { [key in ChainId]: ChainInfo }
 export const CHAINS: ChainConfig = {
   [ChainId.STRATIS]: {
     id: ChainId.STRATIS,
-    name: 'Strax',
+    name: 'Stratis',
     icon: STRATIS_ICON,
     urls: ['https://rpc.stratisevm.com'],
     nativeCurrency: STRATIS_CURRENCY,
     blockExplorerUrls: ['https://explorer.stratisevm.com'],
-    available: true,
+    available: false,
     testnet: false,
+  },
+  [ChainId.AURORIA]: {
+    id: ChainId.AURORIA,
+    name: 'Auroria',
+    icon: STRATIS_ICON,
+    urls: ['https://auroria.rpc.stratisevm.com'],
+    nativeCurrency: STRATIS_CURRENCY,
+    blockExplorerUrls: ['https://auroria.explorer.stratisevm.com'],
+    available: true,
+    testnet: true,
   },
 }
 
 
 export const ALL_SUPPORTED_CHAIN_IDS: ChainId[] = Object.values(ChainId).filter(
-  id => typeof id === 'number',
+  id => typeof id === 'number' && CHAINS[id].available,
 ) as ChainId[]
