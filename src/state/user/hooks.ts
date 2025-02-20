@@ -178,7 +178,7 @@ export function useUserRewards() {
       return BigNumber.from(0)
     }
 
-    const amount = contractBalance.sub(totalTokensBalance).sub(lastBalance).sub(totalCollateralAmount).sub(withdrawingCollateralAmount)
+    const amount = contractBalance.add(totalTokensBalance).sub(lastBalance).sub(totalCollateralAmount).sub(withdrawingCollateralAmount)
     const newTotalDividends = totalDividends.add(amount.div(totalRegistrations))
 
     return newTotalDividends.sub(lastDividends)
