@@ -33,7 +33,7 @@ export function useShowClaimModal() {
   const rewards = useUserRewards()
   const strax = financial(formatEther(rewards))
   return useCallback(async () => {
-    dispatch(setShow({ isClaim: true, text: `You are attempting to claim ${strax} STRAX. Once confirmed, you will receive a prompt in your MetaMask wallet. Would you plike to proceed?` }))
+    dispatch(setShow({ isClaim: true, text: `You are attempting to claim ${strax} STRAX. Once confirmed, you will receive a prompt in your MetaMask wallet. Would you like to proceed?` }))
   }, [strax])
 }
 
