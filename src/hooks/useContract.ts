@@ -52,7 +52,7 @@ export function useContract<T extends Contract = Contract>(address: string | und
 }
 
 export function useMulticall3Contract() {
-  return useContract<Multicall3>(MULTICALL3_ADDRESS, MULTICALL3_ABI)
+  return useContract<Multicall3>(MULTICALL3_ADDRESS, MULTICALL3_ABI, false)
 }
 
 export function useMasterNodeContract() {
@@ -60,7 +60,7 @@ export function useMasterNodeContract() {
   return useContract<MasterNode>(MASTERNODE_ADDRESSES[chainId], MASTERNODE_ABI)
 }
 
-export function useLSSTokenContract() {
+export function useLSSTokenContract(withSigner = false) {
   const chainId = useActiveChainId()
-  return useContract<Erc20>(LSS_TOKEN_ADDRESSES[chainId], ERC20_ABI)
+  return useContract<Erc20>(LSS_TOKEN_ADDRESSES[chainId], ERC20_ABI, withSigner)
 }

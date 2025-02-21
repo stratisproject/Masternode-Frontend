@@ -41,6 +41,7 @@ import {
 
 import {
   useContractBalance,
+  useTotalTokensBalance,
   useIsLSSTokenSupported,
   useIsOwner,
   useTotalCollateralAmount,
@@ -62,6 +63,7 @@ const Content = () => {
   const { pending: pendingEnableLSSTokenSupport, enableLSSTokenSupport } = useEnableLSSTokenSupport()
 
   const balance = useContractBalance()
+  const totalTokensBalance = useTotalTokensBalance()
   const totalCollateralAmount = useTotalCollateralAmount()
   const totalRegistrations = useTotalRegistrations()
   const totalSeconds = useTotalSeconds()
@@ -131,7 +133,7 @@ const Content = () => {
         </div>
       )
     } else if (userRegistrationStatus === RegistrationStatus.REGISTERED) {
-      const isClaimDisabled = userRewards.eq(0) || pendingClaimRewards || pendingStartWithdrawal
+      const isClaimDisabled = userRewards.lte(0) || pendingClaimRewards || pendingStartWithdrawal
       const isStartDisabled = pendingClaimRewards || pendingStartWithdrawal
 
       return (
@@ -213,6 +215,10 @@ const Content = () => {
       value: `${financial(formatEther(balance))} STRAX`,
     },
     {
+      title: 'MasterNode contract LSS balance',
+      value: `${financial(formatEther(totalTokensBalance))} lssSTRAX`,
+    },
+    {
       title: 'Total collateral amount',
       value: `${financial(formatEther(totalCollateralAmount))} STRAX`,
     },
@@ -220,6 +226,9 @@ const Content = () => {
       title: 'Total registrations',
       value: totalRegistrations,
     },
+  ]
+
+  const userStatsData: StatsTileProps[] = [
     {
       title: 'Balance',
       value: `${financial(formatEther(userBalance))} STRAX`,
@@ -228,9 +237,6 @@ const Content = () => {
       title: 'LSS Token Balance',
       value: `${financial(formatEther(userLSSTokenBalance))} lssSTRAX`,
     },
-  ]
-
-  const userStatsData: StatsTileProps[] = [
     {
       title: 'Rewards',
       value: `${financial(formatEther(userRewards))} STRAX`,
@@ -303,18 +309,22 @@ const Content = () => {
                     value={data.value}
                   />
                 ))}
-                {userType !== UserType.UNKNOWN ? (userStatsData.map((data, index) => (
-                  <StatsTile
-                    key={index}
-                    title={data.title}
-                    value={data.value}
-                  />
-                ))) : null}
               </div>
               {userType !== UserType.UNKNOWN ? (
-                <div className="flex items-center gap-3 pt-4">
-                  {renderAction()}
-                </div>
+                <>
+                  <div className="grid md:grid-cols-3 gap-6 group mt-6" data-highlighter="">
+                    {userStatsData.map((data, index) => (
+                      <StatsTile
+                        key={index}
+                        title={data.title}
+                        value={data.value}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-3 pt-4">
+                    {renderAction()}
+                  </div>
+                </>
               ) : null}
             </div>
             {(!isLSSTokenSupported && isOwner) ? (

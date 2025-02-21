@@ -94,11 +94,11 @@ export function useUpdateData() {
         callData: contract.interface.encodeFunctionData('accounts', [account]),
       },
       onResult(r: any) {
-        const [balance, lastClaimedBlock, lastDividends] = contract.interface.decodeFunctionResult('accounts', r)
-        lastBlock = lastClaimedBlock
-        dispatch(setAccountBalance(balance.toString()))
-        dispatch(setLastClaimedBlock(lastClaimedBlock.toNumber()))
-        dispatch(setLastDividends(lastDividends.toString()))
+        const decoded = contract.interface.decodeFunctionResult('accounts', r)
+        lastBlock = decoded.lastClaimedBlock
+        dispatch(setAccountBalance(decoded.balance.toString()))
+        dispatch(setLastClaimedBlock(decoded.lastClaimedBlock.toNumber()))
+        dispatch(setLastDividends(decoded.lastDividends.toString()))
       },
     }]
 

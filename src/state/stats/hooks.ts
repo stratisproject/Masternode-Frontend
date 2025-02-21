@@ -25,7 +25,7 @@ import {
 export function useUpdateData() {
   const dispatch = useAppDispatch()
   const contract = useMasterNodeContract()
-  const lssTokenContract = useLSSTokenContract()
+  const lssTokenContract = useLSSTokenContract(false)
   const multicall3Contract = useMulticall3Contract()
 
   return useCallback(async () => {
