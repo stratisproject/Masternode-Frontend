@@ -60,7 +60,7 @@ export function useMasterNodeContract() {
   return useContract<MasterNode>(MASTERNODE_ADDRESSES[chainId], MASTERNODE_ABI)
 }
 
-export function useLSSTokenContract(withSigner = false) {
+export function useLSSTokenContract(withSigner = true) {
   const chainId = useActiveChainId()
   return useContract<Erc20>(LSS_TOKEN_ADDRESSES[chainId], ERC20_ABI, withSigner)
 }
