@@ -95,7 +95,7 @@ export function useUpdateData() {
       },
       onResult(r: any) {
         const decoded = contract.interface.decodeFunctionResult('accounts', r)
-        lastBlock = decoded.lastClaimedBlock
+        lastBlock = decoded.lastClaimedBlock.toNumber()
         dispatch(setAccountBalance(decoded.balance.toString()))
         dispatch(setLastClaimedBlock(decoded.lastClaimedBlock.toNumber()))
         dispatch(setLastDividends(decoded.lastDividends.toString()))
@@ -110,6 +110,9 @@ export function useUpdateData() {
     let totalSeconds = 0
     if (regStatus.valueOf() === RegistrationStatus.WITHDRAWING) {
       totalSeconds = (lastBlock + withdrawalDelay - blockNumber.toNumber()) * BLOCK_TIME_SECONDS
+    }
+    if (totalSeconds < 0) {
+      totalSeconds = 0
     }
 
     dispatch(setTotalSeconds(totalSeconds))

@@ -177,9 +177,11 @@ const Content = () => {
           >
             Complete withdrawal
           </button>
-          <div>
-            {totalSeconds === 0 ? <span>Calculating time...</span> : <CountdownTimer totalSeconds={totalSeconds} />}
-          </div>
+          {disabled ? (
+            <div>
+              {totalSeconds === 0 ? <span>Calculating time...</span> : <CountdownTimer totalSeconds={totalSeconds} />}
+            </div>
+          ) : null}
         </>
       )
     }
@@ -193,6 +195,7 @@ const Content = () => {
     userRegistrationStatus,
     userSinceLastClaim,
     withdrawalDelay,
+    totalSeconds,
     pendingRegisterUser,
     pendingRegisterUserLSSToken,
     pendingClaimRewards,
