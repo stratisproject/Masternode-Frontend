@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react'
 import { useWeb3React } from '@web3-react/core'
 import { BigNumber } from 'ethers'
 
-import { useMasterNodeContract, useLSSTokenContract, useMulticall3Contract } from 'hooks/useContract'
+import { useMasterNodeContract, useMSTRAXTokenContract, useMulticall3Contract } from 'hooks/useContract'
 import { BLOCK_TIME_SECONDS } from '../../constants'
 
 import { useAppDispatch, useAppSelector } from 'state'
@@ -32,14 +32,14 @@ import {
   setSinceLastClaim,
   setTotalSeconds,
   resetState,
-  setLSSTokenBalance,
+  setMSTRAXBalance,
 } from './reducer'
 
 export function useUpdateData() {
   const dispatch = useAppDispatch()
   const { account } = useWeb3React()
   const contract = useMasterNodeContract()
-  const lssTokenContract = useLSSTokenContract()
+  const mSTRAXTokenContract = useMSTRAXTokenContract()
   const multicall3Contract = useMulticall3Contract()
   const withdrawalDelay = useWithdrawalDelay()
 
@@ -117,15 +117,15 @@ export function useUpdateData() {
 
     dispatch(setTotalSeconds(totalSeconds))
 
-    // Update LSS token balance
-    let lssTokenBalance = '0'
-    if (lssTokenContract) {
-      const bal = await lssTokenContract.balanceOf(account)
-      lssTokenBalance = bal.toString()
+    // Update mSTRAX token balance
+    let mSTRAXTokenBalance = '0'
+    if (mSTRAXTokenContract) {
+      const bal = await mSTRAXTokenContract.balanceOf(account)
+      mSTRAXTokenBalance = bal.toString()
     }
 
-    dispatch(setLSSTokenBalance(lssTokenBalance))
-  }, [account, dispatch, contract, lssTokenContract, multicall3Contract, withdrawalDelay])
+    dispatch(setMSTRAXBalance(mSTRAXTokenBalance))
+  }, [account, dispatch, contract, mSTRAXTokenContract, multicall3Contract, withdrawalDelay])
 }
 
 export function useUserBalance() {
@@ -133,8 +133,8 @@ export function useUserBalance() {
   return useMemo(() => BigNumber.from(value), [value])
 }
 
-export function useUserLSSTokenBalance() {
-  const value = useAppSelector(state => state.user.lssTokenBalance)
+export function useUserMSTRAXTokenBalance() {
+  const value = useAppSelector(state => state.user.mSTRAXBalance)
   return useMemo(() => BigNumber.from(value), [value])
 }
 

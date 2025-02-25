@@ -22,7 +22,7 @@ import {
 import {
   MULTICALL3_ADDRESS,
   MASTERNODE_ADDRESSES,
-  LSS_TOKEN_ADDRESSES,
+  MSTRAX_TOKEN_ADDRESSES,
 } from '../constants'
 
 export function useContract<T extends Contract = Contract>(address: string | undefined, ABI: any, withSignerIfPossible = true): T | null {
@@ -60,7 +60,7 @@ export function useMasterNodeContract() {
   return useContract<MasterNode>(MASTERNODE_ADDRESSES[chainId], MASTERNODE_ABI)
 }
 
-export function useLSSTokenContract(withSigner = true) {
+export function useMSTRAXTokenContract(withSigner = true) {
   const chainId = useActiveChainId()
-  return useContract<Erc20>(LSS_TOKEN_ADDRESSES[chainId], ERC20_ABI, withSigner)
+  return useContract<Erc20>(MSTRAX_TOKEN_ADDRESSES[chainId], ERC20_ABI, withSigner)
 }

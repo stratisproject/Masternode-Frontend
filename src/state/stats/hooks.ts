@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react'
 import { useWeb3React } from '@web3-react/core'
 import { BigNumber } from '@ethersproject/bignumber'
 
-import { useMasterNodeContract, useLSSTokenContract, useMulticall3Contract } from 'hooks/useContract'
+import { useMasterNodeContract, useMSTRAXTokenContract, useMulticall3Contract } from 'hooks/useContract'
 import { DEFAULT_OWNER } from '../../constants'
 
 import { useAppDispatch, useAppSelector } from 'state'
@@ -19,13 +19,13 @@ import {
   setTotalRegistrations,
   setLastBalance,
   setWithdrawingCollateralAmount,
-  setIsLSSTokenSupported,
+  setIsMSTRAXTokenSupported,
 } from './reducer'
 
 export function useUpdateData() {
   const dispatch = useAppDispatch()
   const contract = useMasterNodeContract()
-  const lssTokenContract = useLSSTokenContract(false)
+  const mSTRAXTokenContract = useMSTRAXTokenContract(false)
   const multicall3Contract = useMulticall3Contract()
 
   return useCallback(async () => {
@@ -137,13 +137,13 @@ export function useUpdateData() {
     const result = await multicall3Contract.callStatic.aggregate(calls.map(({ call }) => call))
     result.returnData.map((r, idx) => calls[idx].onResult(r))
 
-    let lssTokenSupported = false
-    if (lssTokenContract) {
-      lssTokenSupported = await contract.supportedTokens(lssTokenContract.address)
+    let mSTRAXTokenSupported = false
+    if (mSTRAXTokenContract) {
+      mSTRAXTokenSupported = await contract.supportedTokens(mSTRAXTokenContract.address)
     }
 
-    dispatch(setIsLSSTokenSupported(lssTokenSupported))
-  }, [dispatch, contract, lssTokenContract, multicall3Contract])
+    dispatch(setIsMSTRAXTokenSupported(mSTRAXTokenSupported))
+  }, [dispatch, contract, mSTRAXTokenContract, multicall3Contract])
 }
 
 export function useIsOwner() {
@@ -201,6 +201,6 @@ export function useTotalDividends() {
   return useMemo(() => BigNumber.from(value), [value])
 }
 
-export function useIsLSSTokenSupported() {
-  return useAppSelector(state => state.stats.isLSSTokenSupported)
+export function useIsMSTRAXTokenSupported() {
+  return useAppSelector(state => state.stats.isMSTRAXTokenSupported)
 }

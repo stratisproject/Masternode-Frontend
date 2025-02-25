@@ -20,16 +20,16 @@ import {
 
 import {
   useRegisterUser,
-  useRegisterUserLSSToken,
+  useRegisterUserMSTRAXToken,
   useClaimRewards,
   useStartWithdrawal,
   useCompleteWithdrawal,
-  useEnableLSSTokenSupport,
+  useEnableMSTRAXTokenSupport,
 } from 'hooks/useMasterNode'
 
 import {
   useUserBalance,
-  useUserLSSTokenBalance,
+  useUserMSTRAXTokenBalance,
   useUserRewards,
   useUserLastClaimedBlock,
   useUserSinceLastClaim,
@@ -42,7 +42,7 @@ import {
 import {
   useContractBalance,
   useTotalTokensBalance,
-  useIsLSSTokenSupported,
+  useIsMSTRAXTokenSupported,
   useIsOwner,
   useTotalCollateralAmount,
   useTotalRegistrations,
@@ -56,11 +56,11 @@ import CountdownTimer from 'components/CountdownTimer'
 
 const Content = () => {
   const { pending: pendingRegisterUser, registerUser } = useRegisterUser()
-  const { pending: pendingRegisterUserLSSToken, registerUserLSSToken } = useRegisterUserLSSToken()
+  const { pending: pendingRegisterUserMSTRAXToken, registerUserMSTRAXToken } = useRegisterUserMSTRAXToken()
   const { pending: pendingClaimRewards, claimRewards } = useClaimRewards()
   const { pending: pendingStartWithdrawal, startWithdrawal } = useStartWithdrawal()
   const { pending: pendingCompleteWithdrawal, completeWithdrawal } = useCompleteWithdrawal()
-  const { pending: pendingEnableLSSTokenSupport, enableLSSTokenSupport } = useEnableLSSTokenSupport()
+  const { pending: pendingEnableMSTRAXTokenSupport, enableMSTRAXTokenSupport } = useEnableMSTRAXTokenSupport()
 
   const balance = useContractBalance()
   const totalTokensBalance = useTotalTokensBalance()
@@ -69,11 +69,11 @@ const Content = () => {
   const totalSeconds = useTotalSeconds()
   const withdrawalDelay = useWithdrawalDelay()
   const isOwner = useIsOwner()
-  const isLSSTokenSupported = useIsLSSTokenSupported()
+  const isMSTRAXTokenSupported = useIsMSTRAXTokenSupported()
 
   const userType = useUserType()
   const userBalance = useUserBalance()
-  const userLSSTokenBalance = useUserLSSTokenBalance()
+  const userMSTRAXTokenBalance = useUserMSTRAXTokenBalance()
   const userRewards = useUserRewards()
   const userLastClaimedBlock = useUserLastClaimedBlock()
   const userSinceLastClaim = useUserSinceLastClaim()
@@ -94,19 +94,19 @@ const Content = () => {
   const renderAction = useCallback(() => {
     if (userRegistrationStatus === RegistrationStatus.UNREGISTERED) {
       const isDisabledRegularRegister = pendingRegisterUser || userBalance.lt(userCollateralAmount)
-      const isDisabledLSSTokenRegister = pendingRegisterUserLSSToken || userLSSTokenBalance.lt(userCollateralAmount)
+      const isDisabledMSTRAXTokenRegister = pendingRegisterUserMSTRAXToken || userMSTRAXTokenBalance.lt(userCollateralAmount)
 
       return (
         <div className="flex flex-col gap-2">
           <div>
             <button
               className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
-                (isDisabledRegularRegister || pendingRegisterUserLSSToken)
+                (isDisabledRegularRegister || pendingRegisterUserMSTRAXToken)
                   ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
                   : 'cursor-pointer bg-purple-800 text-white'
               }`}
-              disabled={isDisabledRegularRegister || pendingRegisterUserLSSToken}
-              onClick={(isDisabledRegularRegister || pendingRegisterUserLSSToken) ? undefined : registerUser}
+              disabled={isDisabledRegularRegister || pendingRegisterUserMSTRAXToken}
+              onClick={(isDisabledRegularRegister || pendingRegisterUserMSTRAXToken) ? undefined : registerUser}
             >
               Register
             </button>
@@ -117,17 +117,17 @@ const Content = () => {
           <div>
             <button
               className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
-                (isDisabledLSSTokenRegister || pendingRegisterUser)
+                (isDisabledMSTRAXTokenRegister || pendingRegisterUser)
                   ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
                   : 'cursor-pointer bg-purple-800 text-white'
               }`}
-              disabled={isDisabledLSSTokenRegister || pendingRegisterUser}
-              onClick={(isDisabledLSSTokenRegister || pendingRegisterUser) ? undefined : registerUserLSSToken}
+              disabled={isDisabledMSTRAXTokenRegister || pendingRegisterUser}
+              onClick={(isDisabledMSTRAXTokenRegister || pendingRegisterUser) ? undefined : registerUserMSTRAXToken}
             >
-              Register LSS Token
+              Register mSTRAX Token
             </button>
             <span className='text-xs text-red-400'>
-              { userLSSTokenBalance.lt(userCollateralAmount) ? ` You do not have the required collateral to register. Please ensure you have a balance of ${formatEther(userCollateralAmount)} lssSTRAX before trying to register` : null}
+              { userMSTRAXTokenBalance.lt(userCollateralAmount) ? ` You do not have the required collateral to register. Please ensure you have a balance of ${formatEther(userCollateralAmount)} mSTRAX before trying to register` : null}
             </span>
           </div>
         </div>
@@ -189,7 +189,7 @@ const Content = () => {
     return null
   }, [
     userBalance.toString(),
-    userLSSTokenBalance.toString(),
+    userMSTRAXTokenBalance.toString(),
     userRewards.toString(),
     userCollateralAmount.toString(),
     userRegistrationStatus,
@@ -197,12 +197,12 @@ const Content = () => {
     withdrawalDelay,
     totalSeconds,
     pendingRegisterUser,
-    pendingRegisterUserLSSToken,
+    pendingRegisterUserMSTRAXToken,
     pendingClaimRewards,
     pendingStartWithdrawal,
     pendingCompleteWithdrawal,
     registerUser,
-    registerUserLSSToken,
+    registerUserMSTRAXToken,
     claimRewards,
     startWithdrawal,
     completeWithdrawal,
@@ -218,8 +218,8 @@ const Content = () => {
       value: `${financial(formatEther(balance))} STRAX`,
     },
     {
-      title: 'MasterNode contract LSS balance',
-      value: `${financial(formatEther(totalTokensBalance))} lssSTRAX`,
+      title: 'MasterNode contract mSTRAX balance',
+      value: `${financial(formatEther(totalTokensBalance))} mSTRAX`,
     },
     {
       title: 'Total collateral amount',
@@ -237,8 +237,8 @@ const Content = () => {
       value: `${financial(formatEther(userBalance))} STRAX`,
     },
     {
-      title: 'LSS Token Balance',
-      value: `${financial(formatEther(userLSSTokenBalance))} lssSTRAX`,
+      title: 'mSTRAX Token Balance',
+      value: `${financial(formatEther(userMSTRAXTokenBalance))} mSTRAX`,
     },
     {
       title: 'Rewards',
@@ -330,18 +330,18 @@ const Content = () => {
                 </>
               ) : null}
             </div>
-            {(!isLSSTokenSupported && isOwner) ? (
+            {(!isMSTRAXTokenSupported && isOwner) ? (
               <div>
                 <button
                   className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
-                    pendingEnableLSSTokenSupport
+                    pendingEnableMSTRAXTokenSupport
                       ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
                       : 'cursor-pointer bg-purple-800 text-white'
                   }`}
-                  disabled={pendingEnableLSSTokenSupport}
-                  onClick={pendingEnableLSSTokenSupport ? undefined : enableLSSTokenSupport}
+                  disabled={pendingEnableMSTRAXTokenSupport}
+                  onClick={pendingEnableMSTRAXTokenSupport ? undefined : enableMSTRAXTokenSupport}
                 >
-                  Enable LSS Token support
+                  Enable mSTRAX Token support
                 </button>
               </div>
             ) : null}

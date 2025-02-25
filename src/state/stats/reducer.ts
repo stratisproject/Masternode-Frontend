@@ -13,7 +13,7 @@ export interface StatsState {
   totalRegistrations: number
   lastBalance: string
   withdrawingCollateralAmount: string
-  isLSSTokenSupported: boolean
+  isMSTRAXTokenSupported: boolean
 }
 
 export const initialState: StatsState = {
@@ -28,7 +28,7 @@ export const initialState: StatsState = {
   totalRegistrations: 0,
   lastBalance: '0',
   withdrawingCollateralAmount: '0',
-  isLSSTokenSupported: false,
+  isMSTRAXTokenSupported: false,
 }
 
 const statsSlice = createSlice({
@@ -68,8 +68,8 @@ const statsSlice = createSlice({
     setWithdrawingCollateralAmount(state, action: PayloadAction<string>) {
       state.withdrawingCollateralAmount = action.payload
     },
-    setIsLSSTokenSupported(state, action: PayloadAction<boolean>) {
-      state.isLSSTokenSupported = action.payload
+    setIsMSTRAXTokenSupported(state, action: PayloadAction<boolean>) {
+      state.isMSTRAXTokenSupported = action.payload
     },
   },
 })
@@ -86,7 +86,7 @@ export const {
   setTotalRegistrations,
   setLastBalance,
   setWithdrawingCollateralAmount,
-  setIsLSSTokenSupported,
+  setIsMSTRAXTokenSupported,
 } = statsSlice.actions
 
 export default statsSlice.reducer

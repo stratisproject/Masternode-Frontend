@@ -6,7 +6,7 @@ import { RegistrationStatus, UserType } from 'types'
 export interface UserState {
   balance: string
   accountBalance: string
-  lssTokenBalance: string
+  mSTRAXBalance: string
   type: UserType
   registrationStatus: RegistrationStatus
   registerToken: string
@@ -19,7 +19,7 @@ export interface UserState {
 export const initialState: UserState = {
   balance: '0',
   accountBalance: '0',
-  lssTokenBalance: '0',
+  mSTRAXBalance: '0',
   type: UserType.UNKNOWN,
   registrationStatus: RegistrationStatus.UNREGISTERED,
   registerToken: AddressZero,
@@ -39,8 +39,8 @@ const userSlice = createSlice({
     setAccountBalance(state, action: PayloadAction<string>) {
       state.accountBalance = action.payload
     },
-    setLSSTokenBalance(state, action: PayloadAction<string>) {
-      state.lssTokenBalance = action.payload
+    setMSTRAXBalance(state, action: PayloadAction<string>) {
+      state.mSTRAXBalance = action.payload
     },
     setType(state, action: PayloadAction<UserType>) {
       state.type = action.payload
@@ -66,7 +66,7 @@ const userSlice = createSlice({
     resetState(state) {
       state.balance = initialState.balance
       state.accountBalance = initialState.accountBalance
-      state.lssTokenBalance = initialState.lssTokenBalance
+      state.mSTRAXBalance = initialState.mSTRAXBalance
       state.type = initialState.type
       state.registrationStatus = initialState.registrationStatus
       state.registerToken = initialState.registerToken
@@ -81,7 +81,7 @@ const userSlice = createSlice({
 export const {
   setBalance,
   setAccountBalance,
-  setLSSTokenBalance,
+  setMSTRAXBalance,
   setType,
   setRegistrationStatus,
   setRegisterToken,
