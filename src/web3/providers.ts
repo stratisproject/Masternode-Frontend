@@ -47,5 +47,5 @@ class AppJsonRpcProvider extends StaticJsonRpcProvider {
 }
 
 export const RPC_PROVIDERS: { [key in ChainId]: StaticJsonRpcProvider } = {
-  [ChainId.STRATIS]: new AppJsonRpcProvider(ChainId.STRATIS),
+  [ChainId.AURORIA]: new AppJsonRpcProvider(ChainId.AURORIA),
 }

@@ -7,8 +7,8 @@ export class WalletConnectPopup extends WalletConnectV2 {
       actions,
       options: {
         projectId: process.env.REACT_APP_WALLETCONNECT_PROJECT_ID || '',
-        chains: [ChainId.STRATIS],
-        optionalChains: [ChainId.STRATIS],
+        chains: [ChainId.AURORIA],
+        optionalChains: [ChainId.AURORIA],
         showQrModal,
       },
       onError,

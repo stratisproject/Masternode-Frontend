@@ -3,10 +3,10 @@ import type { AddEthereumChainParameter } from '@web3-react/types'
 import STRATIS_ICON from 'assets/images/networks/stratis_logo_white.svg'
 
 export enum ChainId {
-  STRATIS = 105105
+  AURORIA = 105105
 }
 
-export const DEFAULT_CHAIN_ID = ChainId.STRATIS
+export const DEFAULT_CHAIN_ID = ChainId.AURORIA
 
 export const STRATIS_CURRENCY: AddEthereumChainParameter['nativeCurrency'] = {
   name: 'Strax',
@@ -54,13 +54,13 @@ export function getAddChainParameters(chainId: ChainId): AddEthereumChainParamet
 type ChainConfig = { [key in ChainId]: ChainInfo }
 
 export const CHAINS: ChainConfig = {
-  [ChainId.STRATIS]: {
-    id: ChainId.STRATIS,
-    name: 'Strax',
+  [ChainId.AURORIA]: {
+    id: ChainId.AURORIA,
+    name: 'Auroria',
     icon: STRATIS_ICON,
-    urls: ['https://rpc.stratisevm.com'],
+    urls: ['https://auroria.rpc.stratisevm.com'],
     nativeCurrency: STRATIS_CURRENCY,
-    blockExplorerUrls: ['https://explorer.stratisevm.com'],
+    blockExplorerUrls: ['https://auroria.explorer.stratisevm.com'],
     available: true,
     testnet: false,
   },
