@@ -42,7 +42,7 @@ import {
   useTotalRegistrations,
 } from 'state/stats/hooks'
 
-import { WITHDRAWAL_DELAY, COLLATERAL_AMOUNT } from '../../constants'
+import { WITHDRAWAL_DELAY } from '../../constants'
 
 import StatsTile, { StatsTileProps } from './StatsTile'
 import { ParticleAnimation } from 'utils/particles'
@@ -97,7 +97,7 @@ const Content = () => {
             Register
           </button>
           <span className='text-xs text-red-400'>
-            { userBalance.lt(userCollateralAmount) ? `You do not have the required collateral to register. Please ensure you have a balance of ${formatEther(COLLATERAL_AMOUNT)} STRAX before trying to register` : null}
+            { userBalance.lt(userCollateralAmount) ? `You do not have the required collateral to register. Please ensure you have a balance of ${formatEther(userCollateralAmount)} STRAX before trying to register` : null}
           </span>
         </>
       )
