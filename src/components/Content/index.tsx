@@ -229,6 +229,10 @@ const Content = () => {
       title: 'Total registrations',
       value: totalRegistrations,
     },
+    {
+      title: 'APR',
+      value: `${(totalRegistrations ? 2102400 * 30 / Number(totalRegistrations) / 1000000 * 100 : 0).toLocaleString()}%`,
+    },
   ]
 
   const userStatsData: StatsTileProps[] = [
