@@ -191,6 +191,10 @@ const Content = () => {
       title: 'Balance',
       value: `${financial(formatEther(userBalance))} STRAX`,
     },
+    {
+      title: 'APR',
+      value: `${(2102400 * 30 / totalRegistrations / 1000000 * 100).toLocaleString()}%`,
+    },
   ]
 
   const userStatsData: StatsTileProps[] = [
