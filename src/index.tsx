@@ -10,7 +10,6 @@ import Updater from 'state/updater'
 
 import Web3Provider from 'components/Web3Provider'
 import WalletModal from 'components/WalletModal'
-
 import App from './App'
 import reportWebVitals from './reportWebVitals'
 
