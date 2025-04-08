@@ -179,6 +179,7 @@ const Content = () => {
     claimRewards,
     startWithdrawal,
     completeWithdrawal,
+    checkUserType,
   ])
 
   const financial = (x: string) => {
@@ -244,7 +245,10 @@ const Content = () => {
 
   return (
     <main className="grow">
-      <LegacyUserWarningModal onConfirm={completeWithdrawal}/>
+      <LegacyUserWarningModal onConfirm={()=>{
+        dispatch(updateIsWarningModalOpen(false))
+        completeWithdrawal()
+      }}/>
       <section>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6">
 
