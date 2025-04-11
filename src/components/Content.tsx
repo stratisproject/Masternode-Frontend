@@ -27,7 +27,7 @@ import { useState } from 'react';
 const Content = () => {
   const { address } = useAccount();
   const userType = useUserType();
-  const [isOpenWarningModal, setIsOpenWarningModal] = useState<boolean>(true);
+  const [isOpenWarningModal, setIsOpenWarningModal] = useState<boolean>(false);
 
   const balanceContract = useContractBalance();
   const userRegisterationStatus = useUserRegisterationStatus();
