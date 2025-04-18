@@ -1,0 +1,130 @@
+.modal-open {
+  overflow: hidden;
+}
+
+.modal-overlay {
+  z-index: 100;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(17, 18, 20, 0.85);
+}
+
+.modal-content {
+  max-width: 550px;
+  width: 100%;
+  background-color:  #1a011a;
+  padding: 0 8px;
+  color: #facc15;
+  padding: 18px 24px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 4px 0px #00000054;
+  background: linear-gradient(180deg, #3c105e 0%, #1a011a 100%);
+  position: relative;
+
+}
+
+.header {
+  margin-bottom: 15px;
+  font-size: 20px;
+  color: #ffffff;
+}
+
+.body {
+  padding: 20px;
+  background-color: #581c87;
+  border-radius: 8px;
+}
+
+.wallets-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+}
+
+.wallet-button {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: #ffffff;
+
+  border-radius: 30px;
+  border: 1px solid #2b012c;
+  cursor: pointer;
+  background-color: #1a011a;
+
+  h3 {
+    font-weight: normal;
+  }
+
+  img {
+    width: 40px;
+    height: 40px;
+  }
+}
+.warning-icon {
+  font-size: 32px; 
+  margin-right: 8px; 
+  margin-right: 8px;
+}
+.warning-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.warning-content {
+  font-size: 15px;
+  color: white;
+}
+.next-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1.2rem;
+  background-color: #3c105e; // blue-600
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  float: right;
+  &:hover {
+    background-color: #330d50; // blue-700
+
+    .icon {
+      transform: translateX(6px);
+    }
+  }
+
+  .label {
+    margin-right: 0.5rem;
+  }
+
+  .icon {
+    transition: transform 0.3s ease;
+    font-size: 1.1rem;
+  }
+}
+.close-button {
+  position: absolute;
+  top: 5px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #ffffff;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #999;
+  }
+}

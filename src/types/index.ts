@@ -6,7 +6,6 @@ export enum RegistrationStatus {
 
 export enum UserType {
   UNKNOWN,
-  LEGACY_10K,
-  LEGACY_50K,
+  LEGACY,
   REGULAR,
 }
