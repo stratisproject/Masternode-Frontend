@@ -9,7 +9,7 @@ export interface NetworkState {
 }
 
 export const initialState: NetworkState = {
-  siteNetworkId: ChainId.AURORIA,
+  siteNetworkId: ChainId.STRATIS,
 }
 
 const networkSlice = createSlice({

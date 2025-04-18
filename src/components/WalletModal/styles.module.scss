@@ -3,7 +3,7 @@
 }
 
 .modal-overlay {
-  z-index: 1;
+  z-index: 100;
   position: fixed;
   top: 0;
   left: 0;
@@ -27,11 +27,12 @@
 .header {
   margin-bottom: 15px;
   font-size: 20px;
+  color: #ffffff;
 }
 
 .body {
-  padding: 10px;
-  background-color: white;
+  padding: 20px;
+  background-color: #581c87;
   border-radius: 8px;
 }
 
@@ -46,11 +47,12 @@
   display: flex;
   align-items: center;
   gap: 20px;
+  color: #ffffff;
 
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  outline: none;
+  border-radius: 30px;
+  border: 1px solid #2b012c;
   cursor: pointer;
+  background-color: #1a011a;
 
   h3 {
     font-weight: normal;

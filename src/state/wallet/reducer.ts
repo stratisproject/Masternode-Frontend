@@ -5,11 +5,13 @@ import storage from 'redux-persist/lib/storage'
 import { ConnectionType } from 'web3/connection'
 
 export interface WalletState {
-  selectedWallet?: ConnectionType
+  selectedWallet?: ConnectionType,
+  warningModal?: boolean,
 }
 
 export const initialState: WalletState = {
   selectedWallet: undefined,
+  warningModal: false,
 }
 
 const walletSlice = createSlice({
@@ -19,11 +21,15 @@ const walletSlice = createSlice({
     updateSelectedWallet(state, action: PayloadAction<ConnectionType | undefined>) {
       state.selectedWallet = action.payload
     },
+    updateIsWarningModalOpen(state, action:PayloadAction<boolean | undefined>) {
+      state.warningModal = action.payload
+    },
   },
 })
 
 export const {
   updateSelectedWallet,
+  updateIsWarningModalOpen,
 } = walletSlice.actions
 
 export default persistReducer({
