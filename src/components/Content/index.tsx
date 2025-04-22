@@ -271,11 +271,11 @@ const Content = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" width="434" height="427">
                   <defs>
                     <linearGradient id="bs2-a" x1="19.609%" x2="50%" y1="14.544%" y2="100%">
-                      <stop offset="0%" stop-color="#6366F1"></stop>
-                      <stop offset="100%" stop-color="#6366F1" stop-opacity="0"></stop>
+                      <stop offset="0%" stopColor="#6366F1"></stop>
+                      <stop offset="100%" stopColor="#6366F1" stopOpacity="0"></stop>
                     </linearGradient>
                   </defs>
-                  <path fill="url(#bs2-a)" fill-rule="evenodd" d="m346 898 461 369-284 58z"
+                  <path fill="url(#bs2-a)" fillRule="evenodd" d="m346 898 461 369-284 58z"
                     transform="translate(-346 -898)"></path>
                 </svg>
               </div>

@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react'
-import { useWeb3React } from '@web3-react/core'
+import { usePublicClient } from 'wagmi'
 import { BigNumber } from 'ethers'
+import { getBalance } from 'viem/actions'
 
 import { useMasterNodeContract } from 'hooks/useContract'
 
@@ -16,18 +17,18 @@ import {
 } from './reducer'
 
 export function useUpdateContractBalance() {
-  const { provider } = useWeb3React()
+  const publicClient = usePublicClient()
   const dispatch = useAppDispatch()
 
   return useCallback(async () => {
-    if (!provider) {
+    if (!publicClient) {
       dispatch(setContractBalance('0'))
       return
     }
 
-    const val = await provider.getBalance(MASTERNODE_ADDRESS)
-    dispatch(setContractBalance(val.toString()))
-  }, [provider, dispatch])
+    const balance = await getBalance(publicClient, { address: MASTERNODE_ADDRESS })
+    dispatch(setContractBalance(balance.toString()))
+  }, [publicClient, dispatch])
 }
 
 export function useUpdateTotalRegistrations() {

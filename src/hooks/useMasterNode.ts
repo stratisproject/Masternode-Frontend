@@ -1,11 +1,11 @@
 import { useState, useCallback } from 'react'
-import { useWeb3React } from '@web3-react/core'
+import { useAccount } from 'wagmi'
+import { formatEther } from 'viem'
 
 import {
   useUserBalance,
   useUserType,
   useUserRegistrationStatus,
-  useUserCollateralAmount,
   useUserSinceLastClaim,
 } from 'state/user/hooks'
 
@@ -16,27 +16,31 @@ import { useMasterNodeContract } from './useContract'
 import { RegistrationStatus, UserType } from 'types'
 
 export function useRegisterUser() {
-  const { account } = useWeb3React()
+  const { address } = useAccount()
   const contract = useMasterNodeContract()
   const balance = useUserBalance()
   const userType = useUserType()
   const status = useUserRegistrationStatus()
-  const collateralAmount = useUserCollateralAmount()
 
   const [pending, setPending] = useState(false)
 
   const registerUser = useCallback(async () => {
-    if (!contract || !account || userType === UserType.UNKNOWN || status != RegistrationStatus.UNREGISTERED) {
+    if (!contract || !address || userType === UserType.UNKNOWN || status != RegistrationStatus.UNREGISTERED) {
       return
     }
 
-    if (balance.lt(collateralAmount)) {
-      console.log('Not enough balance')
-      return
-    }
-
-    setPending(true)
     try {
+      const collateralAmount = await contract.COLLATERAL_AMOUNT()
+      const collateralAmountBigInt = BigInt(collateralAmount.toString())
+      const balanceBigInt = BigInt(balance.toString())
+      console.log('Required collateral amount:', formatEther(collateralAmountBigInt), 'STRAX')
+      console.log('Your balance:', formatEther(balanceBigInt), 'STRAX')
+      if (balance.lt(collateralAmount)) {
+        console.log('Not enough balance')
+        return
+      }
+
+      setPending(true)
       const tx = await contract.register({ value: collateralAmount })
       await tx.wait()
     } catch (error) {
@@ -44,19 +48,19 @@ export function useRegisterUser() {
     } finally {
       setPending(false)
     }
-  }, [userType, status, balance.toString(), collateralAmount.toString(), account, contract])
+  }, [userType, status, balance.toString(), address, contract])
 
-  return { pending, registerUser}
+  return { pending, registerUser }
 }
 
 export function useClaimRewards() {
-  const { account } = useWeb3React()
+  const { address } = useAccount()
   const contract = useMasterNodeContract()
   const status = useUserRegistrationStatus()
   const [pending, setPending] = useState(false)
 
   const claimRewards = useCallback(async () => {
-    if (!contract || !account || status !== RegistrationStatus.REGISTERED) {
+    if (!contract || !address || status !== RegistrationStatus.REGISTERED) {
       return
     }
 
@@ -69,19 +73,19 @@ export function useClaimRewards() {
     } finally {
       setPending(false)
     }
-  }, [status, account, contract])
+  }, [status, address, contract])
 
   return { pending, claimRewards }
 }
 
 export function useStartWithdrawal() {
-  const { account } = useWeb3React()
+  const { address } = useAccount()
   const contract = useMasterNodeContract()
   const status = useUserRegistrationStatus()
   const [pending, setPending] = useState(false)
 
   const startWithdrawal = useCallback(async () => {
-    if (!contract || !account || status !== RegistrationStatus.REGISTERED) {
+    if (!contract || !address || status !== RegistrationStatus.REGISTERED) {
       return
     }
 
@@ -94,13 +98,13 @@ export function useStartWithdrawal() {
     } finally {
       setPending(false)
     }
-  }, [status, account, contract])
+  }, [status, address, contract])
 
   return { pending, startWithdrawal }
 }
 
 export function useCompleteWithdrawal() {
-  const { account } = useWeb3React()
+  const { address } = useAccount()
   const contract = useMasterNodeContract()
   const status = useUserRegistrationStatus()
   const sinceLastClaim = useUserSinceLastClaim()
@@ -108,7 +112,7 @@ export function useCompleteWithdrawal() {
   const [pending, setPending] = useState(false)
 
   const completeWithdrawal = useCallback(async () => {
-    if (!contract || !account || status !== RegistrationStatus.WITHDRAWING || sinceLastClaim < WITHDRAWAL_DELAY) {
+    if (!contract || !address || status !== RegistrationStatus.WITHDRAWING || sinceLastClaim < WITHDRAWAL_DELAY) {
       return
     }
 
@@ -121,7 +125,7 @@ export function useCompleteWithdrawal() {
     } finally {
       setPending(false)
     }
-  }, [account, contract, status, sinceLastClaim])
+  }, [address, contract, status, sinceLastClaim])
 
   return { pending, completeWithdrawal }
 }
