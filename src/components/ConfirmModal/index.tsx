@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 export interface ConfirmModalProps {
   title: string;
@@ -8,9 +8,22 @@ export interface ConfirmModalProps {
   onConfirm: () => void;
   onCancel: () => void;
   onClose: () => void;
+  isWithdraw?: boolean;
 }
 
-const ConfirmModal:React.FC<ConfirmModalProps> = ({ title, body, confirmText, cancelText, onConfirm, onCancel, onClose }) => {
+const ConfirmModal:React.FC<ConfirmModalProps> = ({
+  title,
+  body,
+  confirmText,
+  cancelText,
+  onConfirm,
+  onCancel,
+  onClose,
+  isWithdraw = false,
+}) => {
+  const [confirmationText, setConfirmationText] = useState('')
+  const isConfirmed = !isWithdraw || confirmationText.toLowerCase() === 'withdraw'
+
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
       <div className="relative top-20 mx-auto w-96 shadow-lg aos-init aos-animate" data-aos="fade-down">
@@ -31,13 +44,37 @@ const ConfirmModal:React.FC<ConfirmModalProps> = ({ title, body, confirmText, ca
                     </button>
                   </div>
                   <div className="mt-2 py-3">
+                    {isWithdraw && (
+                      <div className="flex items-center mb-2 text-red-500">
+                        <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        <span className="font-bold">WARNING:</span>
+                      </div>
+                    )}
                     <p className="text-left text-sm text-gray-200">{body}</p>
+                    {isWithdraw && (
+                      <div className="mt-4">
+                        <p className="text-left text-sm text-gray-200 mb-2">Please type "withdraw" to confirm:</p>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 bg-gray-700 text-white rounded-md"
+                          value={confirmationText}
+                          onChange={(e) => setConfirmationText(e.target.value)}
+                          placeholder="Type 'withdraw'"
+                        />
+                      </div>
+                    )}
                   </div>
                   <div className="items-end px-4 py-1 pt-3">
                     <button onClick={onCancel} className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-auto shadow-sm hover:bg-gray-400">
                       {cancelText}
                     </button>
-                    <button onClick={onConfirm} className="px-4 py-2 bg-purple-500 text-white text-base font-medium rounded-md w-auto shadow-sm hover:bg-blue-400 ml-3">
+                    <button
+                      onClick={onConfirm}
+                      className={`px-4 py-2 ${isWithdraw ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-500 hover:bg-blue-400'} text-white text-base font-medium rounded-md w-auto shadow-sm ml-3 ${!isConfirmed ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      disabled={!isConfirmed}
+                    >
                       {confirmText}
                     </button>
                   </div>
