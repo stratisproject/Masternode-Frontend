@@ -67,8 +67,10 @@ export function useUpdateRewards() {
     const userLastDividends = await (await contract.accounts(address)).lastDividends
 
     const value = newTotalDividends.sub(userLastDividends)
+    // Ensure rewards are never negative
+    const finalValue = value.lt(0) ? BigNumber.from(0) : value
 
-    dispatch(setRewards(value.toString()))
+    dispatch(setRewards(finalValue.toString()))
   }, [
     address,
     contract,
