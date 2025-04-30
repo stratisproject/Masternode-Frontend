@@ -20,6 +20,20 @@ import './index.scss'
 const chainInfo = CHAINS[ChainId.STRATIS] as ExtendedChainInformation
 const stratisChain = {
   id: ChainId.STRATIS,
+  name: 'Strax',
+  network: 'strax',
+  nativeCurrency: chainInfo.nativeCurrency,
+  rpcUrls: {
+    default: { http: ['https://rpc.stratisevm.com'] },
+    public: { http: ['https://rpc.stratisevm.com'] },
+  },
+  blockExplorers: {
+    default: { name: 'Strax Explorer', url: 'https://explorer.stratisevm.com' },
+  },
+}
+
+const auroriaChain = {
+  id: ChainId.AURORIA,
   name: 'Auroria',
   network: 'auroria',
   nativeCurrency: chainInfo.nativeCurrency,
@@ -28,14 +42,14 @@ const stratisChain = {
     public: { http: ['https://auroria.rpc.stratisevm.com'] },
   },
   blockExplorers: {
-    default: { name: 'Auroria Explorer', url: 'https://explorer.auroria.stratisevm.com' },
+    default: { name: 'Auroria Explorer', url: 'https://auroria.explorer.stratisevm.com' },
   },
 }
 
 const config = getDefaultConfig({
   appName: 'masternode dAPP',
   projectId: process.env.REACT_APP_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID',
-  chains: [stratisChain],
+  chains: [stratisChain, auroriaChain],
   wallets: [
     {
       groupName: 'Recommended',

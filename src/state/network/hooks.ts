@@ -25,16 +25,22 @@ export function useActiveNetwork() {
 export function useSwitchNetwork() {
   const { switchChain } = useSwitchChain()
   const { address } = useAccount()
+  const dispatch = useAppDispatch()
+  const chainId = useActiveChainId()
 
   return useCallback(
-    async (chainId: ChainId) => {
+    async (newChainId: ChainId) => {
       if (!address) return
       try {
-        await switchChain({ chainId })
+        await switchChain({ chainId: Number(newChainId) })
+        // Update state after successful network switch
+        dispatch(setSiteNetworkId(newChainId))
       } catch (error) {
         console.error('Failed to switch network', error)
+        // If switch fails, revert to current chain
+        dispatch(setSiteNetworkId(chainId))
       }
     },
-    [address, switchChain],
+    [address, switchChain, dispatch, chainId],
   )
 }
