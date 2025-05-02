@@ -42,16 +42,12 @@ import {
   useTotalRegistrations,
 } from 'state/stats/hooks'
 
-import { useAppDispatch } from 'state'
-
 import { WITHDRAWAL_DELAY, COLLATERAL_AMOUNT } from '../../constants'
 
 import StatsTile, { StatsTileProps } from './StatsTile'
 import { ParticleAnimation } from 'utils/particles'
 import ConfirmModal from 'components/ConfirmModal'
 import CountdownTimer from 'components/CountdownTimer'
-import LegacyUserWarningModal from 'components/LegacyUserWarningModal'
-import { updateIsWarningModalOpen } from 'state/wallet/reducer'
 
 const Content = () => {
   const { pending: pendingRegisterUser, registerUser } = useRegisterUser()
@@ -71,9 +67,7 @@ const Content = () => {
   const userSinceLastClaim = useUserSinceLastClaim()
   const userRegistrationStatus = useUserRegistrationStatus()
   const userCollateralAmount = useUserCollateralAmount()
-  const dispatch = useAppDispatch()
 
-  //const userConfirmed = useConfirmed()
   const showModal = useShow()
   const confirmMessage = useContent()
   const isClaim = useIsClaim()
@@ -84,9 +78,6 @@ const Content = () => {
 
   const showWithdrawConfirmation = useShowWithdrawModal()
   const checkUserType = () => {
-    if(userType === UserType.LEGACY) {
-      return dispatch(updateIsWarningModalOpen(true))
-    }
     completeWithdrawal()
   }
 
@@ -249,10 +240,6 @@ const Content = () => {
 
   return (
     <main className="grow">
-      <LegacyUserWarningModal onConfirm={()=>{
-        dispatch(updateIsWarningModalOpen(false))
-        completeWithdrawal()
-      }}/>
       <section>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6">
 

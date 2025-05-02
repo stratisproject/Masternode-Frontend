@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import { UserType } from 'types'
+import { useUserType } from 'state/user/hooks'
 
 export interface ConfirmModalProps {
   title: string;
@@ -23,11 +25,13 @@ const ConfirmModal:React.FC<ConfirmModalProps> = ({
 }) => {
   const [confirmationText, setConfirmationText] = useState('')
   const isConfirmed = !isWithdraw || confirmationText.toLowerCase() === 'withdraw'
+  const userType = useUserType()
+  const isLegacyUser = userType === UserType.LEGACY
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
       <div className="relative top-20 mx-auto w-96 shadow-lg aos-init aos-animate" data-aos="fade-down">
-        <div className="relative h-full bg-slate-800 rounded-3xl p-px before:absolute before:w-96 before:h-96 before:-left-48 before:-top-48 before:bg-purple-500 before:rounded-full before:opacity-0 before:pointer-events-none before:transition-opacity before:duration-500 before:translate-x-[var(--mouse-x)] before:translate-y-[var(--mouse-y)] before:hover:opacity-20 before:z-30 before:blur-[100px] after:absolute after:inset-0 after:rounded-[inherit] after:opacity-0 after:transition-opacity after:duration-500 after:[background:_radial-gradient(250px_circle_at_var(--mouse-x)_var(--mouse-y),theme(colors.slate.400),transparent)] after:group-hover:opacity-100 after:z-10 overflow-hidden">
+        <div className={`relative h-full bg-slate-800 rounded-3xl p-px before:absolute before:w-96 before:h-96 before:-left-48 before:-top-48 before:bg-purple-500 before:rounded-full before:opacity-0 before:pointer-events-none before:transition-opacity before:duration-500 before:translate-x-[var(--mouse-x)] before:translate-y-[var(--mouse-y)] before:hover:opacity-20 before:z-30 before:blur-[100px] after:absolute after:inset-0 after:rounded-[inherit] after:opacity-0 after:transition-opacity after:duration-500 after:[background:_radial-gradient(250px_circle_at_var(--mouse-x)_var(--mouse-y),theme(colors.slate.400),transparent)] after:group-hover:opacity-100 after:z-10 overflow-hidden ${isLegacyUser && isWithdraw ? 'border-2 border-red-500' : ''}`}>
           <div className="relative h-full bg-slate-900 rounded-[inherit] z-20 overflow-hidden">
             <div className="flex flex-col">
               <div className="absolute bottom-0 translate-y-1/2 left-1/2 -translate-x-1/2 pointer-events-none -z-10 w-1/2 aspect-square" aria-hidden="true">
@@ -52,7 +56,15 @@ const ConfirmModal:React.FC<ConfirmModalProps> = ({
                         <span className="font-bold">WARNING:</span>
                       </div>
                     )}
-                    <p className="text-left text-sm text-gray-200">{body}</p>
+                    {isLegacyUser && isWithdraw && (
+                      <div className="flex items-center mb-4 text-red-500">
+                        <svg className="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6a.75.75 0 001.5 0V6zM12 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                        </svg>
+                        <span className="font-bold">LEGACY USER WARNING</span>
+                      </div>
+                    )}
+                    <p className="text-left text-sm text-gray-200 whitespace-pre-line">{body}</p>
                     {isWithdraw && (
                       <div className="mt-4">
                         <p className="text-left text-sm text-gray-200 mb-2">Please type "withdraw" to confirm:</p>
