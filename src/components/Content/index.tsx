@@ -42,16 +42,12 @@ import {
   useTotalRegistrations,
 } from 'state/stats/hooks'
 
-import { useAppDispatch } from 'state'
-
 import { WITHDRAWAL_DELAY, COLLATERAL_AMOUNT } from '../../constants'
 
 import StatsTile, { StatsTileProps } from './StatsTile'
 import { ParticleAnimation } from 'utils/particles'
 import ConfirmModal from 'components/ConfirmModal'
 import CountdownTimer from 'components/CountdownTimer'
-import LegacyUserWarningModal from 'components/LegacyUserWarningModal'
-import { updateIsWarningModalOpen } from 'state/wallet/reducer'
 
 const Content = () => {
   const { pending: pendingRegisterUser, registerUser } = useRegisterUser()
@@ -71,9 +67,7 @@ const Content = () => {
   const userSinceLastClaim = useUserSinceLastClaim()
   const userRegistrationStatus = useUserRegistrationStatus()
   const userCollateralAmount = useUserCollateralAmount()
-  const dispatch = useAppDispatch()
 
-  //const userConfirmed = useConfirmed()
   const showModal = useShow()
   const confirmMessage = useContent()
   const isClaim = useIsClaim()
@@ -84,9 +78,6 @@ const Content = () => {
 
   const showWithdrawConfirmation = useShowWithdrawModal()
   const checkUserType = () => {
-    if(userType === UserType.LEGACY) {
-      return dispatch(updateIsWarningModalOpen(true))
-    }
     completeWithdrawal()
   }
 
@@ -117,40 +108,44 @@ const Content = () => {
       const isStartDisabled = pendingClaimRewards || pendingStartWithdrawal
 
       return (
-        <>
-          <button
-            className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
-              isClaimDisabled
-                ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
-                : 'cursor-pointer bg-purple-800 text-white'
-            }`}
-            disabled={isClaimDisabled}
-            onClick={isClaimDisabled ? undefined : showClaimConfirmation}
-          >
-            Claim rewards
-          </button>
-          <button
-            className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
-              isStartDisabled
-                ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
-                : 'cursor-pointer bg-purple-800 text-white'
-            }`}
-            disabled={isStartDisabled}
-            onClick={isStartDisabled ? undefined : showWithdrawConfirmation}
-          >
-            Start withdrawal
-          </button>
-        </>
+        <div className="flex justify-between w-full">
+          <div>
+            <button
+              className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+                isClaimDisabled
+                  ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
+                  : 'cursor-pointer bg-purple-800 text-white'
+              }`}
+              disabled={isClaimDisabled}
+              onClick={isClaimDisabled ? undefined : showClaimConfirmation}
+            >
+              Claim rewards
+            </button>
+          </div>
+          <div>
+            <button
+              className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-red-700 ${
+                isStartDisabled
+                  ? 'cursor-not-allowed bg-gray-300 text-red-500 opacity-50'
+                  : 'cursor-pointer bg-red-600 text-white'
+              }`}
+              disabled={isStartDisabled}
+              onClick={isStartDisabled ? undefined : showWithdrawConfirmation}
+            >
+              Start withdrawal
+            </button>
+          </div>
+        </div>
       )
     } else if (userRegistrationStatus === RegistrationStatus.WITHDRAWING) {
       const disabled = pendingCompleteWithdrawal || userSinceLastClaim < WITHDRAWAL_DELAY
       return (
         <>
           <button
-            className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+            className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-red-700 ${
               disabled
-                ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
-                : 'cursor-pointer bg-purple-800 text-white'
+                ? 'cursor-not-allowed bg-gray-300 text-red-500 opacity-50'
+                : 'cursor-pointer bg-red-600 text-white'
             }`}
             disabled={disabled}
             onClick={disabled ? undefined : checkUserType}
@@ -245,10 +240,6 @@ const Content = () => {
 
   return (
     <main className="grow">
-      <LegacyUserWarningModal onConfirm={()=>{
-        dispatch(updateIsWarningModalOpen(false))
-        completeWithdrawal()
-      }}/>
       <section>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6">
 
@@ -271,11 +262,11 @@ const Content = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" width="434" height="427">
                   <defs>
                     <linearGradient id="bs2-a" x1="19.609%" x2="50%" y1="14.544%" y2="100%">
-                      <stop offset="0%" stop-color="#6366F1"></stop>
-                      <stop offset="100%" stop-color="#6366F1" stop-opacity="0"></stop>
+                      <stop offset="0%" stopColor="#6366F1"></stop>
+                      <stop offset="100%" stopColor="#6366F1" stopOpacity="0"></stop>
                     </linearGradient>
                   </defs>
-                  <path fill="url(#bs2-a)" fill-rule="evenodd" d="m346 898 461 369-284 58z"
+                  <path fill="url(#bs2-a)" fillRule="evenodd" d="m346 898 461 369-284 58z"
                     transform="translate(-346 -898)"></path>
                 </svg>
               </div>
@@ -325,6 +316,7 @@ const Content = () => {
           onClose={() => {
             hideModal()
           }}
+          isWithdraw={!isClaim}
         />
       )}
     </main>

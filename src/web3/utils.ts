@@ -32,3 +32,8 @@ export function getContract(address: string, ABI: any, provider: JsonRpcProvider
 export function isSupportedChain(chainId: number | null | undefined): chainId is ChainId {
   return !!chainId && !!ChainId[chainId] && CHAINS[chainId as ChainId].available
 }
+
+export function isTestnet(chainId: number | null | undefined): boolean {
+  if (!isSupportedChain(chainId)) return false
+  return CHAINS[chainId].testnet
+}
