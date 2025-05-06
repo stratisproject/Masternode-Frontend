@@ -1,9 +1,10 @@
 import { useCallback, useMemo } from 'react'
-import { usePublicClient } from 'wagmi'
+import { usePublicClient, useChainId } from 'wagmi'
 import { BigNumber } from 'ethers'
 import { getBalance } from 'viem/actions'
 
 import { useMasterNodeContract } from 'hooks/useContract'
+import { ChainId } from 'web3/chains'
 
 import { useAppDispatch, useAppSelector } from 'state'
 
@@ -14,6 +15,7 @@ import {
   setTotalCollateralAmount,
   setTotalRegistrations,
   setTotalBlockShares,
+  setTotalTokensBalance,
 } from './reducer'
 
 export function useUpdateContractBalance() {
@@ -70,6 +72,22 @@ export function useUpdateTotalBlockShares() {
   }, [dispatch])
 }
 
+export function useUpdateTotalTokensBalance() {
+  const dispatch = useAppDispatch()
+  const contract = useMasterNodeContract()
+  const chainId = useChainId()
+
+  return useCallback(async () => {
+    if (!contract || chainId === ChainId.STRATIS) {
+      dispatch(setTotalTokensBalance('0'))
+      return
+    }
+
+    const val = await contract.totalTokensBalance()
+    dispatch(setTotalTokensBalance(val.toString()))
+  }, [chainId, contract, dispatch])
+}
+
 export function useContractBalance() {
   const balance = useAppSelector(state => state.stats.contractBalance)
   return useMemo(() => BigNumber.from(balance), [balance])
@@ -86,4 +104,9 @@ export function useTotalCollateralAmount() {
 
 export function useTotalBlockShares() {
   return useAppSelector(state => state.stats.totalBlockShares)
+}
+
+export function useTotalTokensBalance() {
+  const balance = useAppSelector(state => state.stats.totalTokensBalance)
+  return useMemo(() => BigNumber.from(balance), [balance])
 }
