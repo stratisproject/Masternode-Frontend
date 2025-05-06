@@ -8,7 +8,13 @@ import { useMasterNodeContract } from 'hooks/useContract'
 import { useAppDispatch, useAppSelector } from 'state'
 import { RegistrationStatus, UserType } from 'types'
 
-import { useContractBalance, useTotalCollateralAmount, useTotalBlockShares, useTotalRegistrations } from 'state/stats/hooks'
+import {
+  useContractBalance,
+  useTotalCollateralAmount,
+  useTotalBlockShares,
+  useTotalRegistrations,
+  useTotalTokensBalance,
+} from 'state/stats/hooks'
 
 import { COLLATERAL_AMOUNT, COLLATERAL_AMOUNT_LEGACY } from '../../constants'
 
@@ -50,6 +56,7 @@ export function useUpdateRewards() {
   const totalCollateralAmount = useTotalCollateralAmount()
   const totalBlockShares = useTotalBlockShares()
   const totalRegistrations = useTotalRegistrations()
+  const totalTokensBalance = useTotalTokensBalance()
 
   return useCallback(async () => {
     if (!address || !contract || userStatus !== RegistrationStatus.REGISTERED || sinceLastClaim === 0 || totalRegistrations === 0) {
@@ -61,7 +68,7 @@ export function useUpdateRewards() {
     const lastBalance = await contract.lastBalance()
     const withdrawingCollateralAmount = await contract.withdrawingCollateralAmount()
 
-    const amount = contractBalance.sub(lastBalance).sub(totalCollateralAmount).sub(withdrawingCollateralAmount)
+    const amount = contractBalance.add(totalTokensBalance).sub(lastBalance).sub(totalCollateralAmount).sub(withdrawingCollateralAmount)
 
     const newTotalDividends = existingDividends.add(amount.div(totalRegistrations))
     const userLastDividends = await (await contract.accounts(address)).lastDividends
@@ -81,6 +88,7 @@ export function useUpdateRewards() {
     totalCollateralAmount,
     totalBlockShares,
     totalRegistrations,
+    totalTokensBalance,
     dispatch,
   ])
 }
