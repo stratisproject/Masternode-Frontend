@@ -57,7 +57,7 @@ type ChainConfig = { [key in ChainId]: ChainInfo }
 export const CHAINS: ChainConfig = {
   [ChainId.STRATIS]: {
     id: ChainId.STRATIS,
-    name: 'Strax',
+    name: 'Stratis Mainnet',
     icon: STRATIS_ICON,
     urls: ['https://rpc.stratisevm.com'],
     nativeCurrency: STRATIS_CURRENCY,

@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { useAccount, useChainId, useSwitchChain } from 'wagmi'
 
-import { useAppDispatch } from 'state'
+import { useAppDispatch, useAppSelector } from 'state'
 import { ChainId } from 'web3/chains'
 import { CHAINS } from 'web3/chains'
 import { setSiteNetworkId } from './reducer'
@@ -9,17 +9,21 @@ import { setSiteNetworkId } from './reducer'
 export function useActiveChainId() {
   const chainId = useChainId()
   const dispatch = useAppDispatch()
+  const siteNetworkId = useAppSelector(state => state.network.siteNetworkId)
 
-  if (chainId) {
+  // Only update from wallet chain if connected and we don't have a site network ID
+  if (chainId && !siteNetworkId) {
     dispatch(setSiteNetworkId(chainId as ChainId))
+    return chainId as ChainId
   }
 
-  return chainId as ChainId
+  // Return the site's selected network
+  return siteNetworkId
 }
 
 export function useActiveNetwork() {
   const chainId = useActiveChainId()
-  return chainId ? CHAINS[chainId] : undefined
+  return CHAINS[chainId]
 }
 
 export function useSwitchNetwork() {
@@ -30,11 +34,14 @@ export function useSwitchNetwork() {
 
   return useCallback(
     async (newChainId: ChainId) => {
-      if (!address) return
       try {
-        await switchChain({ chainId: Number(newChainId) })
-        // Update state after successful network switch
+        // Always update the site network ID first
         dispatch(setSiteNetworkId(newChainId))
+
+        // Then try to switch the wallet's network if connected
+        if (address) {
+          await switchChain({ chainId: newChainId })
+        }
       } catch (error) {
         console.error('Failed to switch network', error)
         // If switch fails, revert to current chain

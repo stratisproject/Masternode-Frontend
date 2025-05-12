@@ -26,8 +26,15 @@ export const {
   setSiteNetworkId,
 } = networkSlice.actions
 
-export default persistReducer({
+// Create a custom persist config that will always use the initial state
+const persistConfig = {
   key: 'network',
   storage,
-}, networkSlice.reducer)
+  stateReconciler: () => {
+    // Always use the initial state
+    return initialState
+  },
+}
+
+export default persistReducer(persistConfig, networkSlice.reducer)
 

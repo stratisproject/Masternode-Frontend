@@ -31,7 +31,7 @@ export default function Updater() {
     updateTotalTokensBalance,
   ])
 
-  useInterval(updateData, 3000)
+  useInterval(updateData, 15000)
 
   return null
 }
