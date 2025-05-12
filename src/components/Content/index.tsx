@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react'
 import { formatEther } from 'ethers/lib/utils'
 import AOS from 'aos'
+import { useAccount } from 'wagmi'
 
 import { RegistrationStatus, UserType } from 'types'
 
@@ -50,6 +51,7 @@ import ConfirmModal from 'components/ConfirmModal'
 import CountdownTimer from 'components/CountdownTimer'
 
 const Content = () => {
+  const { address } = useAccount()
   const { pending: pendingRegisterUser, registerUser } = useRegisterUser()
   const { pending: pendingClaimRewards, claimRewards } = useClaimRewards()
   const { pending: pendingStartWithdrawal, startWithdrawal } = useStartWithdrawal()
@@ -181,7 +183,7 @@ const Content = () => {
     return Number.parseFloat(x).toFixed(5)
   }
 
-  const genericStatsData: StatsTileProps[] = [
+  const networkStatsData: StatsTileProps[] = [
     {
       title: 'MasterNode contract balance',
       value: `${financial(formatEther(balance))} STRAX`,
@@ -195,16 +197,16 @@ const Content = () => {
       value: totalRegistrations,
     },
     {
-      title: 'Balance',
-      value: `${financial(formatEther(userBalance))} STRAX`,
-    },
-    {
       title: 'APR',
       value: `${(2102400 * 30 / totalRegistrations / 1000000 * 100).toLocaleString()}%`,
     },
   ]
 
   const userStatsData: StatsTileProps[] = [
+    {
+      title: 'Balance',
+      value: `${financial(formatEther(userBalance))} STRAX`,
+    },
     {
       title: 'Rewards',
       value: `${financial(formatEther(userRewards))} STRAX`,
@@ -218,6 +220,36 @@ const Content = () => {
       value: userLastClaimedBlock,
     },
   ]
+
+  const renderStats = useCallback(() => {
+    return (
+      <>
+        <div className="grid md:grid-cols-3 gap-6 group" data-highlighter="">
+          {networkStatsData.map((data, index) => (
+            <StatsTile
+              key={index}
+              title={data.title}
+              value={data.value}
+            />
+          ))}
+          {address && userType !== UserType.UNKNOWN ? (
+            userStatsData.map((data, index) => (
+              <StatsTile
+                key={index}
+                title={data.title}
+                value={data.value}
+              />
+            ))
+          ) : null}
+        </div>
+        {address && userType !== UserType.UNKNOWN ? (
+          <div className="flex items-center gap-3 pt-4">
+            {renderAction()}
+          </div>
+        ) : null}
+      </>
+    )
+  }, [address, userType, networkStatsData, userStatsData, renderAction])
 
   useEffect(() => {
     AOS.init({
@@ -242,7 +274,6 @@ const Content = () => {
     <main className="grow">
       <section>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6">
-
           <div className="absolute inset-0 -z-10" aria-hidden="true">
             <canvas data-particle-animation></canvas>
           </div>
@@ -255,7 +286,6 @@ const Content = () => {
           </div>
 
           <div className="pt-32 pb-16 md:pt-32 md:pb-20">
-
             <div className="relative pb-12 md:pb-20">
               <div className="absolute bottom-0 -mb-20 left-1/2 -translate-x-1/2 blur-2xl opacity-50 pointer-events-none"
                 aria-hidden="true">
@@ -270,27 +300,7 @@ const Content = () => {
                     transform="translate(-346 -898)"></path>
                 </svg>
               </div>
-              <div className="grid md:grid-cols-3 gap-6 group" data-highlighter="">
-                {genericStatsData.map((data, index) => (
-                  <StatsTile
-                    key={index}
-                    title={data.title}
-                    value={data.value}
-                  />
-                ))}
-                {userType !== UserType.UNKNOWN ? (userStatsData.map((data, index) => (
-                  <StatsTile
-                    key={index}
-                    title={data.title}
-                    value={data.value}
-                  />
-                ))) : null}
-              </div>
-              {userType !== UserType.UNKNOWN ? (
-                <div className="flex items-center gap-3 pt-4">
-                  {renderAction()}
-                </div>
-              ) : null}
+              {renderStats()}
             </div>
           </div>
         </div>
