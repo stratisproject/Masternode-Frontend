@@ -1,27 +1,42 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 export default function useInterval(callback: () => void | Promise<void> | Promise<[void]>, delay: null | number, leading = true) {
+  const delayRef = useRef(delay)
+
   useEffect(() => {
-    if (delay === null) {
+    if (delayRef.current === null) {
       return
     }
 
-    tick(!leading)
+    let id: NodeJS.Timeout | undefined
 
     async function tick(skip = false) {
       if (!skip) {
         const promise = callback()
-
         if (promise) await promise
+        // Set delay to null after first execution
+        delayRef.current = null
+        // Clear the interval after first execution
+        if (id) {
+          clearInterval(id)
+        }
       }
     }
 
-    const id = setInterval(() => tick(), delay)
+    // Initial tick if leading
+    if (leading) {
+      tick()
+    }
+
+    // Set up interval only if we haven't executed yet
+    if (delayRef.current !== null) {
+      id = setInterval(() => tick(), delayRef.current)
+    }
 
     return () => {
       if (id) {
-        clearTimeout(id)
+        clearInterval(id)
       }
     }
-  }, [callback, delay, leading])
+  }, [callback, leading])
 }
