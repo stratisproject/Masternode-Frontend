@@ -35,7 +35,7 @@ export default function Updater() {
     updateTotalSeconds,
   ])
 
-  useInterval(updateData, 3000)
+  useInterval(updateData, 15000)
 
   return null
 }
