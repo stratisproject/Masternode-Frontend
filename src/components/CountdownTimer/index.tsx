@@ -2,20 +2,29 @@ import { useState, useEffect } from 'react'
 
 const CountdownTimer = ({ totalSeconds }: { totalSeconds: number }) => {
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(totalSeconds))
+  const [isComplete, setIsComplete] = useState(totalSeconds <= 0)
 
   useEffect(() => {
     let timer: NodeJS.Timeout
 
-    if (totalSeconds >= 0) {
-      timer =
-        setInterval(() => {
-          setTimeLeft(calculateTimeLeft(totalSeconds - 1))
-          totalSeconds--
-        }, 1000)
+    if (totalSeconds > 0 && !isComplete) {
+      timer = setInterval(() => {
+        const newTotalSeconds = totalSeconds - 1
+        if (newTotalSeconds <= 0) {
+          setIsComplete(true)
+          setTimeLeft(calculateTimeLeft(0))
+          clearInterval(timer)
+        } else {
+          setTimeLeft(calculateTimeLeft(newTotalSeconds))
+        }
+      }, 1000)
+    } else if (totalSeconds <= 0) {
+      setIsComplete(true)
+      setTimeLeft(calculateTimeLeft(0))
     }
 
     return () => clearInterval(timer)
-  }, [totalSeconds])
+  }, [totalSeconds, isComplete])
 
   function calculateTimeLeft(seconds: number) {
     return {
@@ -28,7 +37,11 @@ const CountdownTimer = ({ totalSeconds }: { totalSeconds: number }) => {
 
   return (
     <div>
-      Time to completion: {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
+      {isComplete ? (
+        <div>Withdrawal period complete! You can now complete your withdrawal.</div>
+      ) : (
+        <div>Time to completion: {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s</div>
+      )}
     </div>
   )
 }
