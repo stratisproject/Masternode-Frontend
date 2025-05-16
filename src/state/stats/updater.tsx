@@ -3,31 +3,19 @@ import { useCallback } from 'react'
 import useInterval from 'hooks/useInterval'
 
 import {
-  useUpdateContractBalance,
-  useUpdateTotalBlockShares,
-  useUpdateTotalCollateralAmount,
-  useUpdateTotalRegistrations,
+  useUpdateData,
 } from './hooks'
 
 export default function Updater() {
-  const updateContractBalance = useUpdateContractBalance()
-  const updateTotalRegistrations = useUpdateTotalRegistrations()
-  const updateTotalBlockShares = useUpdateTotalBlockShares()
-  const updateTotalCollateralAmount = useUpdateTotalCollateralAmount()
+  const updateData = useUpdateData()
 
-  const updateData = useCallback(async () => {
-    updateContractBalance()
-    updateTotalRegistrations()
-    updateTotalBlockShares()
-    updateTotalCollateralAmount()
+  const update = useCallback(async () => {
+    updateData()
   }, [
-    updateContractBalance,
-    updateTotalRegistrations,
-    updateTotalBlockShares,
-    updateTotalCollateralAmount,
+    updateData,
   ])
 
-  useInterval(updateData, 3000)
+  useInterval(update, 3000)
 
   return null
 }

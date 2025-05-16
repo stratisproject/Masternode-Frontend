@@ -3,14 +3,27 @@ import { Contract } from 'ethers'
 import { useWeb3React } from '@web3-react/core'
 import { Network } from '@web3-react/network'
 
+import { useActiveChainId } from 'state/network/hooks'
+
 import { ConnectionType } from 'web3/connection'
 import { isSupportedChain } from 'web3/utils'
 import { getContract } from 'web3/utils'
 import { useGetConnection } from 'web3/connection'
-import MASTERNODE_ABI from 'constants/abis/masterNode'
-import { MasterNode } from 'constants/abis/types'
 
-import { MASTERNODE_ADDRESS } from '../constants'
+import MULTICALL3_ABI from 'constants/abis/multicall3'
+import MASTERNODE_ABI from 'constants/abis/masterNode'
+import ERC20_ABI from 'constants/abis/erc20'
+import {
+  Multicall3,
+  MasterNode,
+  Erc20,
+} from 'constants/abis/types'
+
+import {
+  MULTICALL3_ADDRESS,
+  MASTERNODE_ADDRESSES,
+  MSTRAX_TOKEN_ADDRESSES,
+} from '../constants'
 
 export function useContract<T extends Contract = Contract>(address: string | undefined, ABI: any, withSignerIfPossible = true): T | null {
   const { provider, account, chainId } = useWeb3React()
@@ -38,6 +51,16 @@ export function useContract<T extends Contract = Contract>(address: string | und
   }, [address, ABI, provider, withSignerIfPossible, account, chainId, getConnection ]) as T
 }
 
-export function useMasterNodeContract(): MasterNode | null {
-  return useContract(MASTERNODE_ADDRESS, MASTERNODE_ABI)
+export function useMulticall3Contract() {
+  return useContract<Multicall3>(MULTICALL3_ADDRESS, MULTICALL3_ABI, false)
+}
+
+export function useMasterNodeContract() {
+  const chainId = useActiveChainId()
+  return useContract<MasterNode>(MASTERNODE_ADDRESSES[chainId], MASTERNODE_ABI)
+}
+
+export function useMSTRAXTokenContract(withSigner = true) {
+  const chainId = useActiveChainId()
+  return useContract<Erc20>(MSTRAX_TOKEN_ADDRESSES[chainId], ERC20_ABI, withSigner)
 }

@@ -20,13 +20,16 @@ import {
 
 import {
   useRegisterUser,
+  useRegisterUserMSTRAXToken,
   useClaimRewards,
   useStartWithdrawal,
   useCompleteWithdrawal,
+  useEnableMSTRAXTokenSupport,
 } from 'hooks/useMasterNode'
 
 import {
   useUserBalance,
+  useUserMSTRAXTokenBalance,
   useUserRewards,
   useUserLastClaimedBlock,
   useUserSinceLastClaim,
@@ -38,13 +41,15 @@ import {
 
 import {
   useContractBalance,
+  useTotalTokensBalance,
+  useIsMSTRAXTokenSupported,
+  useIsOwner,
   useTotalCollateralAmount,
   useTotalRegistrations,
+  useWithdrawalDelay,
 } from 'state/stats/hooks'
 
 import { useAppDispatch } from 'state'
-
-import { WITHDRAWAL_DELAY, COLLATERAL_AMOUNT } from '../../constants'
 
 import StatsTile, { StatsTileProps } from './StatsTile'
 import { ParticleAnimation } from 'utils/particles'
@@ -55,17 +60,24 @@ import { updateIsWarningModalOpen } from 'state/wallet/reducer'
 
 const Content = () => {
   const { pending: pendingRegisterUser, registerUser } = useRegisterUser()
+  const { pending: pendingRegisterUserMSTRAXToken, registerUserMSTRAXToken } = useRegisterUserMSTRAXToken()
   const { pending: pendingClaimRewards, claimRewards } = useClaimRewards()
   const { pending: pendingStartWithdrawal, startWithdrawal } = useStartWithdrawal()
   const { pending: pendingCompleteWithdrawal, completeWithdrawal } = useCompleteWithdrawal()
+  const { pending: pendingEnableMSTRAXTokenSupport, enableMSTRAXTokenSupport } = useEnableMSTRAXTokenSupport()
 
   const balance = useContractBalance()
+  const totalTokensBalance = useTotalTokensBalance()
   const totalCollateralAmount = useTotalCollateralAmount()
   const totalRegistrations = useTotalRegistrations()
   const totalSeconds = useTotalSeconds()
+  const withdrawalDelay = useWithdrawalDelay()
+  const isOwner = useIsOwner()
+  const isMSTRAXTokenSupported = useIsMSTRAXTokenSupported()
 
   const userType = useUserType()
   const userBalance = useUserBalance()
+  const userMSTRAXTokenBalance = useUserMSTRAXTokenBalance()
   const userRewards = useUserRewards()
   const userLastClaimedBlock = useUserLastClaimedBlock()
   const userSinceLastClaim = useUserSinceLastClaim()
@@ -92,28 +104,47 @@ const Content = () => {
 
   const renderAction = useCallback(() => {
     if (userRegistrationStatus === RegistrationStatus.UNREGISTERED) {
-      const isDisabled = pendingRegisterUser || userBalance.lt(userCollateralAmount)
+      const isDisabledRegularRegister = pendingRegisterUser || userBalance.lt(userCollateralAmount)
+      const isDisabledMSTRAXTokenRegister = pendingRegisterUserMSTRAXToken || userMSTRAXTokenBalance.lt(userCollateralAmount)
 
       return (
-        <>
-          <button
-            className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
-              isDisabled
-                ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
-                : 'cursor-pointer bg-purple-800 text-white'
-            }`}
-            disabled={isDisabled}
-            onClick={isDisabled ? undefined : registerUser}
-          >
-            Register
-          </button>
-          <span className='text-xs text-red-400'>
-            { userBalance.lt(userCollateralAmount) ? `You do not have the required collateral to register. Please ensure you have a balance of ${formatEther(COLLATERAL_AMOUNT)} STRAX before trying to register` : null}
-          </span>
-        </>
+        <div className="flex flex-col gap-2">
+          <div>
+            <button
+              className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+                (isDisabledRegularRegister || pendingRegisterUserMSTRAXToken)
+                  ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
+                  : 'cursor-pointer bg-purple-800 text-white'
+              }`}
+              disabled={isDisabledRegularRegister || pendingRegisterUserMSTRAXToken}
+              onClick={(isDisabledRegularRegister || pendingRegisterUserMSTRAXToken) ? undefined : registerUser}
+            >
+              Register
+            </button>
+            <span className='text-xs text-red-400'>
+              { userBalance.lt(userCollateralAmount) ? ` You do not have the required collateral to register. Please ensure you have a balance of ${formatEther(userCollateralAmount)} STRAX before trying to register` : null}
+            </span>
+          </div>
+          <div>
+            <button
+              className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+                (isDisabledMSTRAXTokenRegister || pendingRegisterUser)
+                  ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
+                  : 'cursor-pointer bg-purple-800 text-white'
+              }`}
+              disabled={isDisabledMSTRAXTokenRegister || pendingRegisterUser}
+              onClick={(isDisabledMSTRAXTokenRegister || pendingRegisterUser) ? undefined : registerUserMSTRAXToken}
+            >
+              Register mSTRAX Token
+            </button>
+            <span className='text-xs text-red-400'>
+              { userMSTRAXTokenBalance.lt(userCollateralAmount) ? ` You do not have the required collateral to register. Please ensure you have a balance of ${formatEther(userCollateralAmount)} mSTRAX before trying to register` : null}
+            </span>
+          </div>
+        </div>
       )
     } else if (userRegistrationStatus === RegistrationStatus.REGISTERED) {
-      const isClaimDisabled = userRewards.eq(0) || pendingClaimRewards || pendingStartWithdrawal
+      const isClaimDisabled = userRewards.lte(0) || pendingClaimRewards || pendingStartWithdrawal
       const isStartDisabled = pendingClaimRewards || pendingStartWithdrawal
 
       return (
@@ -143,7 +174,7 @@ const Content = () => {
         </>
       )
     } else if (userRegistrationStatus === RegistrationStatus.WITHDRAWING) {
-      const disabled = pendingCompleteWithdrawal || userSinceLastClaim < WITHDRAWAL_DELAY
+      const disabled = pendingCompleteWithdrawal || userSinceLastClaim < withdrawalDelay
       return (
         <>
           <button
@@ -157,25 +188,32 @@ const Content = () => {
           >
             Complete withdrawal
           </button>
-          <div>
-            {totalSeconds === 0 ? <span>Calculating time...</span> : <CountdownTimer totalSeconds={totalSeconds} />}
-          </div>
+          {disabled ? (
+            <div>
+              {totalSeconds === 0 ? <span>Calculating time...</span> : <CountdownTimer totalSeconds={totalSeconds} />}
+            </div>
+          ) : null}
         </>
       )
     }
 
     return null
   }, [
-    userBalance,
-    userRewards,
-    userCollateralAmount,
+    userBalance.toString(),
+    userMSTRAXTokenBalance.toString(),
+    userRewards.toString(),
+    userCollateralAmount.toString(),
     userRegistrationStatus,
     userSinceLastClaim,
+    withdrawalDelay,
+    totalSeconds,
     pendingRegisterUser,
+    pendingRegisterUserMSTRAXToken,
     pendingClaimRewards,
     pendingStartWithdrawal,
     pendingCompleteWithdrawal,
     registerUser,
+    registerUserMSTRAXToken,
     claimRewards,
     startWithdrawal,
     completeWithdrawal,
@@ -192,6 +230,10 @@ const Content = () => {
       value: `${financial(formatEther(balance))} STRAX`,
     },
     {
+      title: 'MasterNode contract mSTRAX balance',
+      value: `${financial(formatEther(totalTokensBalance))} mSTRAX`,
+    },
+    {
       title: 'Total collateral amount',
       value: `${financial(formatEther(totalCollateralAmount))} STRAX`,
     },
@@ -200,8 +242,8 @@ const Content = () => {
       value: totalRegistrations,
     },
     {
-      title: 'Balance',
-      value: `${financial(formatEther(userBalance))} STRAX`,
+      title: 'APR',
+      value: `${(totalRegistrations ? 2102400 * 30 / Number(totalRegistrations) / 1000000 * 100 : 0).toLocaleString()}%`,
     },
     {
       title: 'APR',
@@ -210,6 +252,14 @@ const Content = () => {
   ]
 
   const userStatsData: StatsTileProps[] = [
+    {
+      title: 'Balance',
+      value: `${financial(formatEther(userBalance))} STRAX`,
+    },
+    {
+      title: 'mSTRAX Token Balance',
+      value: `${financial(formatEther(userMSTRAXTokenBalance))} mSTRAX`,
+    },
     {
       title: 'Rewards',
       value: `${financial(formatEther(userRewards))} STRAX`,
@@ -264,18 +314,17 @@ const Content = () => {
           </div>
 
           <div className="pt-32 pb-16 md:pt-32 md:pb-20">
-
             <div className="relative pb-12 md:pb-20">
               <div className="absolute bottom-0 -mb-20 left-1/2 -translate-x-1/2 blur-2xl opacity-50 pointer-events-none"
                 aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" width="434" height="427">
                   <defs>
                     <linearGradient id="bs2-a" x1="19.609%" x2="50%" y1="14.544%" y2="100%">
-                      <stop offset="0%" stop-color="#6366F1"></stop>
-                      <stop offset="100%" stop-color="#6366F1" stop-opacity="0"></stop>
+                      <stop offset="0%" stopColor="#6366F1"></stop>
+                      <stop offset="100%" stopColor="#6366F1" stopOpacity="0"></stop>
                     </linearGradient>
                   </defs>
-                  <path fill="url(#bs2-a)" fill-rule="evenodd" d="m346 898 461 369-284 58z"
+                  <path fill="url(#bs2-a)" fillRule="evenodd" d="m346 898 461 369-284 58z"
                     transform="translate(-346 -898)"></path>
                 </svg>
               </div>
@@ -287,20 +336,39 @@ const Content = () => {
                     value={data.value}
                   />
                 ))}
-                {userType !== UserType.UNKNOWN ? (userStatsData.map((data, index) => (
-                  <StatsTile
-                    key={index}
-                    title={data.title}
-                    value={data.value}
-                  />
-                ))) : null}
               </div>
               {userType !== UserType.UNKNOWN ? (
-                <div className="flex items-center gap-3 pt-4">
-                  {renderAction()}
-                </div>
+                <>
+                  <div className="grid md:grid-cols-3 gap-6 group mt-6" data-highlighter="">
+                    {userStatsData.map((data, index) => (
+                      <StatsTile
+                        key={index}
+                        title={data.title}
+                        value={data.value}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-3 pt-4">
+                    {renderAction()}
+                  </div>
+                </>
               ) : null}
             </div>
+            {(!isMSTRAXTokenSupported && isOwner) ? (
+              <div>
+                <button
+                  className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+                    pendingEnableMSTRAXTokenSupport
+                      ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
+                      : 'cursor-pointer bg-purple-800 text-white'
+                  }`}
+                  disabled={pendingEnableMSTRAXTokenSupport}
+                  onClick={pendingEnableMSTRAXTokenSupport ? undefined : enableMSTRAXTokenSupport}
+                >
+                  Enable mSTRAX Token support
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
