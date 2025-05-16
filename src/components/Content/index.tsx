@@ -49,10 +49,14 @@ import {
   useWithdrawalDelay,
 } from 'state/stats/hooks'
 
+import { useAppDispatch } from 'state'
+
 import StatsTile, { StatsTileProps } from './StatsTile'
 import { ParticleAnimation } from 'utils/particles'
 import ConfirmModal from 'components/ConfirmModal'
 import CountdownTimer from 'components/CountdownTimer'
+import LegacyUserWarningModal from 'components/LegacyUserWarningModal'
+import { updateIsWarningModalOpen } from 'state/wallet/reducer'
 
 const Content = () => {
   const { pending: pendingRegisterUser, registerUser } = useRegisterUser()
@@ -79,6 +83,7 @@ const Content = () => {
   const userSinceLastClaim = useUserSinceLastClaim()
   const userRegistrationStatus = useUserRegistrationStatus()
   const userCollateralAmount = useUserCollateralAmount()
+  const dispatch = useAppDispatch()
 
   //const userConfirmed = useConfirmed()
   const showModal = useShow()
@@ -90,6 +95,12 @@ const Content = () => {
   const showClaimConfirmation = useShowClaimModal()
 
   const showWithdrawConfirmation = useShowWithdrawModal()
+  const checkUserType = () => {
+    if(userType === UserType.LEGACY) {
+      return dispatch(updateIsWarningModalOpen(true))
+    }
+    completeWithdrawal()
+  }
 
   const renderAction = useCallback(() => {
     if (userRegistrationStatus === RegistrationStatus.UNREGISTERED) {
@@ -173,7 +184,7 @@ const Content = () => {
                 : 'cursor-pointer bg-purple-800 text-white'
             }`}
             disabled={disabled}
-            onClick={disabled ? undefined : completeWithdrawal}
+            onClick={disabled ? undefined : checkUserType}
           >
             Complete withdrawal
           </button>
@@ -206,6 +217,7 @@ const Content = () => {
     claimRewards,
     startWithdrawal,
     completeWithdrawal,
+    checkUserType,
   ])
 
   const financial = (x: string) => {
@@ -232,6 +244,10 @@ const Content = () => {
     {
       title: 'APR',
       value: `${(totalRegistrations ? 2102400 * 30 / Number(totalRegistrations) / 1000000 * 100 : 0).toLocaleString()}%`,
+    },
+    {
+      title: 'APR',
+      value: `${(2102400 * 30 / totalRegistrations / 1000000 * 100).toLocaleString()}%`,
     },
   ]
 
@@ -279,6 +295,10 @@ const Content = () => {
 
   return (
     <main className="grow">
+      <LegacyUserWarningModal onConfirm={()=>{
+        dispatch(updateIsWarningModalOpen(false))
+        completeWithdrawal()
+      }}/>
       <section>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6">
 
