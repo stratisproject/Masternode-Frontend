@@ -1,8 +1,10 @@
 import { useCallback, useMemo } from 'react'
-import { useWeb3React } from '@web3-react/core'
+import { usePublicClient, useChainId } from 'wagmi'
 import { BigNumber } from 'ethers'
+import { getBalance } from 'viem/actions'
 
 import { useMasterNodeContract } from 'hooks/useContract'
+import { ChainId } from 'web3/chains'
 
 import { useAppDispatch, useAppSelector } from 'state'
 
@@ -13,21 +15,22 @@ import {
   setTotalCollateralAmount,
   setTotalRegistrations,
   setTotalBlockShares,
+  setTotalTokensBalance,
 } from './reducer'
 
 export function useUpdateContractBalance() {
-  const { provider } = useWeb3React()
+  const publicClient = usePublicClient()
   const dispatch = useAppDispatch()
 
   return useCallback(async () => {
-    if (!provider) {
+    if (!publicClient) {
       dispatch(setContractBalance('0'))
       return
     }
 
-    const val = await provider.getBalance(MASTERNODE_ADDRESS)
-    dispatch(setContractBalance(val.toString()))
-  }, [provider, dispatch])
+    const balance = await getBalance(publicClient, { address: MASTERNODE_ADDRESS })
+    dispatch(setContractBalance(balance.toString()))
+  }, [publicClient, dispatch])
 }
 
 export function useUpdateTotalRegistrations() {
@@ -69,6 +72,22 @@ export function useUpdateTotalBlockShares() {
   }, [dispatch])
 }
 
+export function useUpdateTotalTokensBalance() {
+  const dispatch = useAppDispatch()
+  const contract = useMasterNodeContract()
+  const chainId = useChainId()
+
+  return useCallback(async () => {
+    if (!contract || chainId === ChainId.STRATIS) {
+      dispatch(setTotalTokensBalance('0'))
+      return
+    }
+
+    const val = await contract.totalTokensBalance()
+    dispatch(setTotalTokensBalance(val.toString()))
+  }, [chainId, contract, dispatch])
+}
+
 export function useContractBalance() {
   const balance = useAppSelector(state => state.stats.contractBalance)
   return useMemo(() => BigNumber.from(balance), [balance])
@@ -85,4 +104,9 @@ export function useTotalCollateralAmount() {
 
 export function useTotalBlockShares() {
   return useAppSelector(state => state.stats.totalBlockShares)
+}
+
+export function useTotalTokensBalance() {
+  const balance = useAppSelector(state => state.stats.totalTokensBalance)
+  return useMemo(() => BigNumber.from(balance), [balance])
 }

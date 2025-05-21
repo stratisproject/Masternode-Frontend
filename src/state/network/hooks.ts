@@ -1,58 +1,110 @@
 import { useCallback } from 'react'
-import { useWeb3React } from '@web3-react/core'
+import { useAccount, useChainId, useSwitchChain } from 'wagmi'
 
 import { useAppDispatch, useAppSelector } from 'state'
-import { ChainId, getAddChainParameters, CHAINS } from 'web3/chains'
-import { networkConnection } from 'web3/connection'
-import { isSupportedChain } from 'web3/utils'
-
+import { ChainId } from 'web3/chains'
+import { CHAINS } from 'web3/chains'
 import { setSiteNetworkId } from './reducer'
 
-export function useSiteNetworkId() {
-  return useAppSelector(state => state.network.siteNetworkId)
-}
+import {
+  useUpdateContractBalance,
+  useUpdateTotalBlockShares,
+  useUpdateTotalCollateralAmount,
+  useUpdateTotalRegistrations,
+  useUpdateTotalTokensBalance,
+} from 'state/stats/hooks'
+import {
+  useUpdateBalance,
+  useUpdateRewards,
+  useUpdateLastClaimedBlock,
+  useUpdateRegistrationStatus,
+  useUpdateType,
+  useUpdateTotalSeconds,
+} from 'state/user/hooks'
 
 export function useActiveChainId() {
-  const { chainId, isActive } = useWeb3React()
-  const siteNetworkId = useSiteNetworkId()
-
-  if (!isActive) {
-    return siteNetworkId
-  }
-
-  return chainId as ChainId
-}
-
-export function useFallbackChainId() {
-  const { chainId, isActive } = useWeb3React()
+  const chainId = useChainId()
+  const dispatch = useAppDispatch()
   const siteNetworkId = useAppSelector(state => state.network.siteNetworkId)
 
-  if (!isActive || !isSupportedChain(chainId)) {
-    return siteNetworkId
+  // Only update from wallet chain if connected and we don't have a site network ID
+  if (chainId && !siteNetworkId) {
+    dispatch(setSiteNetworkId(chainId as ChainId))
+    return chainId as ChainId
   }
 
-  return chainId as ChainId
+  // Return the site's selected network
+  return siteNetworkId
 }
 
 export function useActiveNetwork() {
   const chainId = useActiveChainId()
-
-  return (chainId && isSupportedChain(chainId)) ? CHAINS[chainId] : undefined
+  return CHAINS[chainId]
 }
 
 export function useSwitchNetwork() {
+  const { switchChain } = useSwitchChain()
+  const { address } = useAccount()
   const dispatch = useAppDispatch()
-  const { connector, account } = useWeb3React()
+  const chainId = useActiveChainId()
 
-  return useCallback(async (chainId: ChainId) => {
-    if (!account) {
-      await networkConnection.connector.activate(chainId)
-    } else {
-      await connector.activate(getAddChainParameters(chainId))
-    }
+  const updateContractBalance = useUpdateContractBalance()
+  const updateTotalRegistrations = useUpdateTotalRegistrations()
+  const updateTotalBlockShares = useUpdateTotalBlockShares()
+  const updateTotalCollateralAmount = useUpdateTotalCollateralAmount()
+  const updateTotalTokensBalance = useUpdateTotalTokensBalance()
+  const updateBalance = useUpdateBalance()
+  const updateRewards = useUpdateRewards()
+  const updateLastClaimedBlock = useUpdateLastClaimedBlock()
+  const updateRegistrationStatus = useUpdateRegistrationStatus()
+  const updateType = useUpdateType()
+  const updateTotalSeconds = useUpdateTotalSeconds()
 
-    if (isSupportedChain(chainId)) {
-      dispatch(setSiteNetworkId(chainId))
-    }
-  }, [dispatch, account, connector])
+  return useCallback(
+    async (newChainId: ChainId) => {
+      try {
+        // Always update the site network ID first
+        dispatch(setSiteNetworkId(newChainId))
+
+        // Then try to switch the wallet's network if connected
+        if (address) {
+          await switchChain({ chainId: newChainId })
+        }
+
+        // Trigger immediate data refresh
+        updateContractBalance()
+        updateTotalRegistrations()
+        updateTotalBlockShares()
+        updateTotalCollateralAmount()
+        updateTotalTokensBalance()
+        updateBalance()
+        updateRewards()
+        updateLastClaimedBlock()
+        updateRegistrationStatus()
+        updateType()
+        updateTotalSeconds()
+      } catch (error) {
+        console.error('Failed to switch network', error)
+        // If switch fails, revert to current chain
+        dispatch(setSiteNetworkId(chainId))
+      }
+    },
+    [
+      address,
+      switchChain,
+      dispatch,
+      chainId,
+      updateContractBalance,
+      updateTotalRegistrations,
+      updateTotalBlockShares,
+      updateTotalCollateralAmount,
+      updateTotalTokensBalance,
+      updateBalance,
+      updateRewards,
+      updateLastClaimedBlock,
+      updateRegistrationStatus,
+      updateType,
+      updateTotalSeconds,
+    ],
+  )
 }

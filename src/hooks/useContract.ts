@@ -1,41 +1,32 @@
 import { useMemo } from 'react'
 import { Contract } from 'ethers'
-import { useWeb3React } from '@web3-react/core'
-import { Network } from '@web3-react/network'
-
-import { ConnectionType } from 'web3/connection'
-import { isSupportedChain } from 'web3/utils'
-import { getContract } from 'web3/utils'
-import { useGetConnection } from 'web3/connection'
+import { usePublicClient, useWalletClient } from 'wagmi'
+import { getWagmiContract } from 'web3/wagmi'
 import MASTERNODE_ABI from 'constants/abis/masterNode'
 import { MasterNode } from 'constants/abis/types'
-
 import { MASTERNODE_ADDRESS } from '../constants'
 
 export function useContract<T extends Contract = Contract>(address: string | undefined, ABI: any, withSignerIfPossible = true): T | null {
-  const { provider, account, chainId } = useWeb3React()
-  const getConnection = useGetConnection()
+  const publicClient = usePublicClient()
+  const { data: walletClient } = useWalletClient()
 
   return useMemo(() => {
-    if (!address || !ABI || !provider) {
+    if (!address || !ABI || !publicClient) {
       return null
     }
 
-    const networkConnection = getConnection(ConnectionType.NETWORK)
-    const networkConnector = networkConnection.connector as Network
-    const isValidChain = isSupportedChain(chainId)
-
     try {
-      // Use network connector if the chain is not supported
-      if (!isValidChain && networkConnector.customProvider) {
-        return getContract(address, ABI, networkConnector.customProvider, undefined)
-      }
-      return getContract(address, ABI, provider, withSignerIfPossible && account ? account : undefined)
+      return getWagmiContract(
+        address,
+        ABI,
+        publicClient,
+        withSignerIfPossible ? walletClient : undefined,
+      )
     } catch (error) {
       console.error('Failed to get contract', error)
       return null
     }
-  }, [address, ABI, provider, withSignerIfPossible, account, chainId, getConnection ]) as T
+  }, [address, ABI, publicClient, withSignerIfPossible, walletClient]) as T
 }
 
 export function useMasterNodeContract(): MasterNode | null {

@@ -5,6 +5,10 @@ export interface StatsState {
   totalCollateralAmount: string
   totalRegistrations: number
   totalBlockShares: number
+
+  // This parameter shows total amount of ERC20 tokens in MN contract
+  // and currently it exists only on Auroria. For mainnet this amount will be 0
+  totalTokensBalance: string
 }
 
 export const initialState: StatsState = {
@@ -12,6 +16,7 @@ export const initialState: StatsState = {
   totalCollateralAmount: '0',
   totalRegistrations: 0,
   totalBlockShares: 0,
+  totalTokensBalance: '0',
 }
 
 const statsSlice = createSlice({
@@ -30,6 +35,9 @@ const statsSlice = createSlice({
     setTotalBlockShares(state, action: PayloadAction<number>) {
       state.totalBlockShares = action.payload
     },
+    setTotalTokensBalance(state, action: PayloadAction<string>) {
+      state.totalTokensBalance = action.payload
+    },
   },
 })
 
@@ -38,6 +46,7 @@ export const {
   setTotalCollateralAmount,
   setTotalRegistrations,
   setTotalBlockShares,
+  setTotalTokensBalance,
 } = statsSlice.actions
 
 export default statsSlice.reducer
