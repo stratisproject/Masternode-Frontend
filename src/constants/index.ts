@@ -1,7 +1,9 @@
 import { parseEther } from 'ethers/lib/utils'
 
 export const MASTERNODE_ADDRESS = '0x0000000000000000000000000000000000001002'
+export const MULTICALL3_ADDRESS = '0xcA11bde05977b3631167028862bE2a173976CA11'
 
 export const COLLATERAL_AMOUNT = parseEther('1000000')
 export const COLLATERAL_AMOUNT_LEGACY = parseEther('100000')
 export const WITHDRAWAL_DELAY = 100800 // 100800
+export const BLOCK_SECONDS = 15

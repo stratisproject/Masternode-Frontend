@@ -30,10 +30,6 @@ export const {
 const persistConfig = {
   key: 'network',
   storage,
-  stateReconciler: () => {
-    // Always use the initial state
-    return initialState
-  },
 }
 
 export default persistReducer(persistConfig, networkSlice.reducer)
