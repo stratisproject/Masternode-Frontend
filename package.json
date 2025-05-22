@@ -48,8 +48,8 @@
     "sass": "^1.79.0",
     "typechain": "^8.3.2",
     "ua-parser-js": "^1.0.37",
-    "viem": "^2.15.1",
-    "wagmi": "^2.10.6",
+    "viem": "^2.30.0",
+    "wagmi": "^2.15.4",
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {

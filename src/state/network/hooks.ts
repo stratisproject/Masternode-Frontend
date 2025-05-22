@@ -6,35 +6,21 @@ import { ChainId } from 'web3/chains'
 import { CHAINS } from 'web3/chains'
 import { setSiteNetworkId } from './reducer'
 
-import {
-  useUpdateContractBalance,
-  useUpdateTotalBlockShares,
-  useUpdateTotalCollateralAmount,
-  useUpdateTotalRegistrations,
-  useUpdateTotalTokensBalance,
-} from 'state/stats/hooks'
-import {
-  useUpdateBalance,
-  useUpdateRewards,
-  useUpdateLastClaimedBlock,
-  useUpdateRegistrationStatus,
-  useUpdateType,
-  useUpdateTotalSeconds,
-} from 'state/user/hooks'
+export function useSiteNetworkId() {
+  return useAppSelector(state => state.network.siteNetworkId)
+}
 
 export function useActiveChainId() {
   const chainId = useChainId()
-  const dispatch = useAppDispatch()
-  const siteNetworkId = useAppSelector(state => state.network.siteNetworkId)
+  const siteNetworkId = useSiteNetworkId()
 
   // Only update from wallet chain if connected and we don't have a site network ID
-  if (chainId && !siteNetworkId) {
-    dispatch(setSiteNetworkId(chainId as ChainId))
-    return chainId as ChainId
+  if (siteNetworkId) {
+    return siteNetworkId
   }
 
   // Return the site's selected network
-  return siteNetworkId
+  return chainId as ChainId
 }
 
 export function useActiveNetwork() {
@@ -48,41 +34,13 @@ export function useSwitchNetwork() {
   const dispatch = useAppDispatch()
   const chainId = useActiveChainId()
 
-  const updateContractBalance = useUpdateContractBalance()
-  const updateTotalRegistrations = useUpdateTotalRegistrations()
-  const updateTotalBlockShares = useUpdateTotalBlockShares()
-  const updateTotalCollateralAmount = useUpdateTotalCollateralAmount()
-  const updateTotalTokensBalance = useUpdateTotalTokensBalance()
-  const updateBalance = useUpdateBalance()
-  const updateRewards = useUpdateRewards()
-  const updateLastClaimedBlock = useUpdateLastClaimedBlock()
-  const updateRegistrationStatus = useUpdateRegistrationStatus()
-  const updateType = useUpdateType()
-  const updateTotalSeconds = useUpdateTotalSeconds()
-
   return useCallback(
     async (newChainId: ChainId) => {
       try {
         // Always update the site network ID first
         dispatch(setSiteNetworkId(newChainId))
 
-        // Then try to switch the wallet's network if connected
-        if (address) {
-          await switchChain({ chainId: newChainId })
-        }
-
-        // Trigger immediate data refresh
-        updateContractBalance()
-        updateTotalRegistrations()
-        updateTotalBlockShares()
-        updateTotalCollateralAmount()
-        updateTotalTokensBalance()
-        updateBalance()
-        updateRewards()
-        updateLastClaimedBlock()
-        updateRegistrationStatus()
-        updateType()
-        updateTotalSeconds()
+        await switchChain({ chainId: newChainId })
       } catch (error) {
         console.error('Failed to switch network', error)
         // If switch fails, revert to current chain
@@ -94,17 +52,6 @@ export function useSwitchNetwork() {
       switchChain,
       dispatch,
       chainId,
-      updateContractBalance,
-      updateTotalRegistrations,
-      updateTotalBlockShares,
-      updateTotalCollateralAmount,
-      updateTotalTokensBalance,
-      updateBalance,
-      updateRewards,
-      updateLastClaimedBlock,
-      updateRegistrationStatus,
-      updateType,
-      updateTotalSeconds,
     ],
   )
 }

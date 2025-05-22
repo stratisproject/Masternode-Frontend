@@ -1,91 +1,86 @@
 import { useCallback, useMemo } from 'react'
 import { usePublicClient, useChainId } from 'wagmi'
 import { BigNumber } from 'ethers'
-import { getBalance } from 'viem/actions'
 
-import { useMasterNodeContract } from 'hooks/useContract'
 import { ChainId } from 'web3/chains'
 
 import { useAppDispatch, useAppSelector } from 'state'
 
-import { MASTERNODE_ADDRESS } from '../../constants'
+import { MASTERNODE_ADDRESS, MULTICALL3_ADDRESS } from '../../constants'
+import MASTERNODE_ABI from 'constants/abis/masterNode'
+import MULTICALL3_ABI from 'constants/multicall3'
 
 import {
   setContractBalance,
   setTotalCollateralAmount,
   setTotalRegistrations,
-  setTotalBlockShares,
   setTotalTokensBalance,
+  setTotalDividends,
+  setLastBalance,
+  setWithdrawingCollateralAmount,
 } from './reducer'
 
-export function useUpdateContractBalance() {
-  const publicClient = usePublicClient()
+export function useUpdateData() {
   const dispatch = useAppDispatch()
-
-  return useCallback(async () => {
-    if (!publicClient) {
-      dispatch(setContractBalance('0'))
-      return
-    }
-
-    const balance = await getBalance(publicClient, { address: MASTERNODE_ADDRESS })
-    dispatch(setContractBalance(balance.toString()))
-  }, [publicClient, dispatch])
-}
-
-export function useUpdateTotalRegistrations() {
-  const contract = useMasterNodeContract()
-  const dispatch = useAppDispatch()
-
-  return useCallback(async () => {
-    if (!contract) {
-      dispatch(setTotalRegistrations(0))
-      return
-    }
-
-    const val = await contract.totalRegistrations()
-    dispatch(setTotalRegistrations(val.toNumber()))
-  }, [contract, dispatch])
-}
-
-export function useUpdateTotalCollateralAmount() {
-  const contract = useMasterNodeContract()
-  const dispatch = useAppDispatch()
-
-  return useCallback(async () => {
-    if (!contract) {
-      dispatch(setTotalCollateralAmount('0'))
-      return
-    }
-
-    const val = await contract.totalCollateralAmount()
-    dispatch(setTotalCollateralAmount(val.toString()))
-  }, [contract, dispatch])
-}
-
-export function useUpdateTotalBlockShares() {
-  const dispatch = useAppDispatch()
-
-  return useCallback(async () => {
-    dispatch(setTotalBlockShares(0))
-    return
-  }, [dispatch])
-}
-
-export function useUpdateTotalTokensBalance() {
-  const dispatch = useAppDispatch()
-  const contract = useMasterNodeContract()
+  const client = usePublicClient()
   const chainId = useChainId()
 
   return useCallback(async () => {
-    if (!contract || chainId === ChainId.STRATIS) {
-      dispatch(setTotalTokensBalance('0'))
+    if (!client) {
       return
     }
 
-    const val = await contract.totalTokensBalance()
-    dispatch(setTotalTokensBalance(val.toString()))
-  }, [chainId, contract, dispatch])
+    const calls = [{
+      address: MULTICALL3_ADDRESS,
+      abi: MULTICALL3_ABI,
+      functionName: 'getEthBalance',
+      args: [MASTERNODE_ADDRESS],
+    }, {
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'totalRegistrations',
+    }, {
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'totalCollateralAmount',
+    }, {
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'totalDividends',
+    }, {
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'lastBalance',
+    }, {
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'withdrawingCollateralAmount',
+    }]
+    if (chainId === ChainId.AURORIA) {
+      calls.push({
+        address: MASTERNODE_ADDRESS,
+        abi: MASTERNODE_ABI,
+        functionName: 'totalTokensBalance',
+      })
+    }
+
+    // @ts-ignore
+    const response = await client.multicall({
+      contracts: calls as any,
+    })
+
+    dispatch(setContractBalance((response[0]?.result as bigint).toString()))
+    dispatch(setTotalRegistrations(Number(response[1]?.result as bigint)))
+    dispatch(setTotalCollateralAmount((response[2]?.result as bigint).toString()))
+    dispatch(setTotalDividends((response[3]?.result as bigint).toString()))
+    dispatch(setLastBalance((response[4]?.result as bigint).toString()))
+    dispatch(setWithdrawingCollateralAmount((response[5]?.result as bigint).toString()))
+    if (response.length === 7) {
+      dispatch(setTotalTokensBalance((response[6]?.result as bigint).toString()))
+    } else {
+      dispatch(setTotalTokensBalance('0'))
+    }
+  }, [dispatch, client, chainId])
 }
 
 export function useContractBalance() {
@@ -102,8 +97,19 @@ export function useTotalCollateralAmount() {
   return useMemo(() => BigNumber.from(amount), [amount])
 }
 
-export function useTotalBlockShares() {
-  return useAppSelector(state => state.stats.totalBlockShares)
+export function useTotalDividends() {
+  const val = useAppSelector(state => state.stats.totalDividends)
+  return useMemo(() => BigNumber.from(val), [val])
+}
+
+export function useLastBalance() {
+  const val = useAppSelector(state => state.stats.lastBalance)
+  return useMemo(() => BigNumber.from(val), [val])
+}
+
+export function useWithdrawingCollateralAmount() {
+  const val = useAppSelector(state => state.stats.withdrawingCollateralAmount)
+  return useMemo(() => BigNumber.from(val), [val])
 }
 
 export function useTotalTokensBalance() {

@@ -3,24 +3,22 @@ import { RegistrationStatus, UserType } from 'types'
 
 export interface UserState {
   balance: string
-  rewards: string
   type: UserType
   registrationStatus: RegistrationStatus
   lastClaimedBlock: number
-  blockShares: number
   sinceLastClaim: number
   totalSeconds: number
+  lastDividends: string
 }
 
 export const initialState: UserState = {
   balance: '0',
-  rewards: '0',
   type: UserType.UNKNOWN,
   registrationStatus: RegistrationStatus.UNREGISTERED,
   lastClaimedBlock: 0,
-  blockShares: 0,
   sinceLastClaim: 0,
   totalSeconds: 0,
+  lastDividends: '0',
 }
 
 const userSlice = createSlice({
@@ -29,9 +27,6 @@ const userSlice = createSlice({
   reducers: {
     setBalance(state, action: PayloadAction<string>) {
       state.balance = action.payload
-    },
-    setRewards(state, action: PayloadAction<string>) {
-      state.rewards = action.payload
     },
     setType(state, action: PayloadAction<UserType>) {
       state.type = action.payload
@@ -45,24 +40,33 @@ const userSlice = createSlice({
     setSinceLastClaim(state, action: PayloadAction<number>) {
       state.sinceLastClaim = action.payload
     },
-    setBlockShares(state, action: PayloadAction<number>) {
-      state.blockShares = action.payload
-    },
     setTotalSeconds(state, action: PayloadAction<number>) {
       state.totalSeconds = action.payload
+    },
+    setLastDividends(state, action: PayloadAction<string>) {
+      state.lastDividends = action.payload
+    },
+    resetState(state) {
+      state.balance = initialState.balance
+      state.type = initialState.type
+      state.registrationStatus = initialState.registrationStatus
+      state.lastClaimedBlock = initialState.lastClaimedBlock
+      state.sinceLastClaim = initialState.sinceLastClaim
+      state.totalSeconds = initialState.totalSeconds
+      state.lastDividends = initialState.lastDividends
     },
   },
 })
 
 export const {
   setBalance,
-  setRewards,
   setType,
   setRegistrationStatus,
-  setBlockShares,
   setLastClaimedBlock,
   setSinceLastClaim,
   setTotalSeconds,
+  setLastDividends,
+  resetState,
 } = userSlice.actions
 
 export default userSlice.reducer

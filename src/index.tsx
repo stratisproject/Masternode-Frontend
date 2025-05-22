@@ -5,44 +5,37 @@ import { PersistGate } from 'redux-persist/integration/react'
 import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RainbowKitProvider, getDefaultConfig } from '@rainbow-me/rainbowkit'
+import { RainbowKitChain } from '@rainbow-me/rainbowkit/dist/components/RainbowKitProvider/RainbowKitChainContext'
 import { metaMaskWallet, rainbowWallet, bitgetWallet, walletConnectWallet } from '@rainbow-me/rainbowkit/wallets'
-import '@rainbow-me/rainbowkit/styles.css'
-import { ChainId, CHAINS, ExtendedChainInformation } from 'web3/chains'
+
+import { stratis, auroria } from 'viem/chains'
 
 import store, { persistor } from 'state'
 import Updater from 'state/updater'
 import App from './App'
 import reportWebVitals from './reportWebVitals'
 
+import '@rainbow-me/rainbowkit/styles.css'
 import './index.scss'
 
+import { MULTICALL3_ADDRESS } from './constants'
+
 // We know this is ExtendedChainInformation because we defined it that way in CHAINS
-const chainInfo = CHAINS[ChainId.STRATIS] as ExtendedChainInformation
-const stratisChain = {
-  id: ChainId.STRATIS,
-  name: 'Strax',
-  network: 'strax',
-  nativeCurrency: chainInfo.nativeCurrency,
-  rpcUrls: {
-    default: { http: ['https://rpc.stratisevm.com'] },
-    public: { http: ['https://rpc.stratisevm.com'] },
-  },
-  blockExplorers: {
-    default: { name: 'Strax Explorer', url: 'https://explorer.stratisevm.com' },
+const stratisChain: RainbowKitChain = {
+  ...stratis,
+  contracts: {
+    multicall3: {
+      address: MULTICALL3_ADDRESS,
+    },
   },
 }
 
-const auroriaChain = {
-  id: ChainId.AURORIA,
-  name: 'Auroria',
-  network: 'auroria',
-  nativeCurrency: chainInfo.nativeCurrency,
-  rpcUrls: {
-    default: { http: ['https://auroria.rpc.stratisevm.com'] },
-    public: { http: ['https://auroria.rpc.stratisevm.com'] },
-  },
-  blockExplorers: {
-    default: { name: 'Auroria Explorer', url: 'https://auroria.explorer.stratisevm.com' },
+const auroriaChain: RainbowKitChain = {
+  ...auroria,
+  contracts: {
+    multicall3: {
+      address: MULTICALL3_ADDRESS,
+    },
   },
 }
 
