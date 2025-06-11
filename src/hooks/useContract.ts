@@ -1,63 +1,45 @@
 import { useMemo } from 'react'
 import { Contract } from 'ethers'
-import { useWeb3React } from '@web3-react/core'
-import { Network } from '@web3-react/network'
+import {
+  usePublicClient,
+  useAccount,
+} from 'wagmi'
+
+import { getWagmiContract } from 'web3/wagmi'
 
 import { useActiveChainId } from 'state/network/hooks'
 
-import { ConnectionType } from 'web3/connection'
-import { isSupportedChain } from 'web3/utils'
-import { getContract } from 'web3/utils'
-import { useGetConnection } from 'web3/connection'
-
-import MULTICALL3_ABI from 'constants/abis/multicall3'
 import MASTERNODE_ABI from 'constants/abis/masterNode'
 import ERC20_ABI from 'constants/abis/erc20'
-import {
-  Multicall3,
-  MasterNode,
-  Erc20,
-} from 'constants/abis/types'
+import { MasterNode, Erc20 } from 'constants/abis/types'
 
-import {
-  MULTICALL3_ADDRESS,
-  MASTERNODE_ADDRESSES,
-  MSTRAX_TOKEN_ADDRESSES,
-} from '../constants'
+import { MASTERNODE_ADDRESS, MSTRAX_TOKEN_ADDRESSES } from '../constants'
 
 export function useContract<T extends Contract = Contract>(address: string | undefined, ABI: any, withSignerIfPossible = true): T | null {
-  const { provider, account, chainId } = useWeb3React()
-  const getConnection = useGetConnection()
+  const publicClient = usePublicClient()
+  const { address: account } = useAccount()
 
   return useMemo(() => {
-    if (!address || !ABI || !provider) {
+    if (!address || !ABI || !publicClient) {
       return null
     }
 
-    const networkConnection = getConnection(ConnectionType.NETWORK)
-    const networkConnector = networkConnection.connector as Network
-    const isValidChain = isSupportedChain(chainId)
-
     try {
-      // Use network connector if the chain is not supported
-      if (!isValidChain && networkConnector.customProvider) {
-        return getContract(address, ABI, networkConnector.customProvider, undefined)
-      }
-      return getContract(address, ABI, provider, withSignerIfPossible && account ? account : undefined)
+      return getWagmiContract(
+        address,
+        ABI,
+        publicClient.transport,
+        withSignerIfPossible ? account : undefined,
+      )
     } catch (error) {
       console.error('Failed to get contract', error)
       return null
     }
-  }, [address, ABI, provider, withSignerIfPossible, account, chainId, getConnection ]) as T
-}
-
-export function useMulticall3Contract() {
-  return useContract<Multicall3>(MULTICALL3_ADDRESS, MULTICALL3_ABI, false)
+  }, [address, ABI, publicClient, withSignerIfPossible, account]) as T
 }
 
 export function useMasterNodeContract() {
-  const chainId = useActiveChainId()
-  return useContract<MasterNode>(MASTERNODE_ADDRESSES[chainId], MASTERNODE_ABI)
+  return useContract<MasterNode>(MASTERNODE_ADDRESS, MASTERNODE_ABI)
 }
 
 export function useMSTRAXTokenContract(withSigner = true) {

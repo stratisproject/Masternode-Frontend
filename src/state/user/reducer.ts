@@ -11,9 +11,9 @@ export interface UserState {
   registrationStatus: RegistrationStatus
   registerToken: string
   lastClaimedBlock: number
-  lastDividends: string
   sinceLastClaim: number
   totalSeconds: number
+  lastDividends: string
 }
 
 export const initialState: UserState = {
@@ -24,9 +24,9 @@ export const initialState: UserState = {
   registrationStatus: RegistrationStatus.UNREGISTERED,
   registerToken: AddressZero,
   lastClaimedBlock: 0,
-  lastDividends: '0',
   sinceLastClaim: 0,
   totalSeconds: 0,
+  lastDividends: '0',
 }
 
 const userSlice = createSlice({

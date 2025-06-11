@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react'
 import { formatEther } from 'ethers/lib/utils'
 import AOS from 'aos'
+import { useAccount } from 'wagmi'
 
 import { RegistrationStatus, UserType } from 'types'
 
@@ -49,16 +50,13 @@ import {
   useWithdrawalDelay,
 } from 'state/stats/hooks'
 
-import { useAppDispatch } from 'state'
-
 import StatsTile, { StatsTileProps } from './StatsTile'
 import { ParticleAnimation } from 'utils/particles'
 import ConfirmModal from 'components/ConfirmModal'
 import CountdownTimer from 'components/CountdownTimer'
-import LegacyUserWarningModal from 'components/LegacyUserWarningModal'
-import { updateIsWarningModalOpen } from 'state/wallet/reducer'
 
 const Content = () => {
+  const { address } = useAccount()
   const { pending: pendingRegisterUser, registerUser } = useRegisterUser()
   const { pending: pendingRegisterUserMSTRAXToken, registerUserMSTRAXToken } = useRegisterUserMSTRAXToken()
   const { pending: pendingClaimRewards, claimRewards } = useClaimRewards()
@@ -83,9 +81,7 @@ const Content = () => {
   const userSinceLastClaim = useUserSinceLastClaim()
   const userRegistrationStatus = useUserRegistrationStatus()
   const userCollateralAmount = useUserCollateralAmount()
-  const dispatch = useAppDispatch()
 
-  //const userConfirmed = useConfirmed()
   const showModal = useShow()
   const confirmMessage = useContent()
   const isClaim = useIsClaim()
@@ -96,9 +92,6 @@ const Content = () => {
 
   const showWithdrawConfirmation = useShowWithdrawModal()
   const checkUserType = () => {
-    if(userType === UserType.LEGACY) {
-      return dispatch(updateIsWarningModalOpen(true))
-    }
     completeWithdrawal()
   }
 
@@ -148,40 +141,44 @@ const Content = () => {
       const isStartDisabled = pendingClaimRewards || pendingStartWithdrawal
 
       return (
-        <>
-          <button
-            className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
-              isClaimDisabled
-                ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
-                : 'cursor-pointer bg-purple-800 text-white'
-            }`}
-            disabled={isClaimDisabled}
-            onClick={isClaimDisabled ? undefined : showClaimConfirmation}
-          >
-            Claim rewards
-          </button>
-          <button
-            className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
-              isStartDisabled
-                ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
-                : 'cursor-pointer bg-purple-800 text-white'
-            }`}
-            disabled={isStartDisabled}
-            onClick={isStartDisabled ? undefined : showWithdrawConfirmation}
-          >
-            Start withdrawal
-          </button>
-        </>
+        <div className="flex justify-between w-full">
+          <div>
+            <button
+              className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+                isClaimDisabled
+                  ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
+                  : 'cursor-pointer bg-purple-800 text-white'
+              }`}
+              disabled={isClaimDisabled}
+              onClick={isClaimDisabled ? undefined : showClaimConfirmation}
+            >
+              Claim rewards
+            </button>
+          </div>
+          <div>
+            <button
+              className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-red-700 ${
+                isStartDisabled
+                  ? 'cursor-not-allowed bg-gray-300 text-red-500 opacity-50'
+                  : 'cursor-pointer bg-red-600 text-white'
+              }`}
+              disabled={isStartDisabled}
+              onClick={isStartDisabled ? undefined : showWithdrawConfirmation}
+            >
+              Start withdrawal
+            </button>
+          </div>
+        </div>
       )
     } else if (userRegistrationStatus === RegistrationStatus.WITHDRAWING) {
       const disabled = pendingCompleteWithdrawal || userSinceLastClaim < withdrawalDelay
       return (
         <>
           <button
-            className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+            className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-red-700 ${
               disabled
-                ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
-                : 'cursor-pointer bg-purple-800 text-white'
+                ? 'cursor-not-allowed bg-gray-300 text-red-500 opacity-50'
+                : 'cursor-pointer bg-red-600 text-white'
             }`}
             disabled={disabled}
             onClick={disabled ? undefined : checkUserType}
@@ -224,7 +221,7 @@ const Content = () => {
     return Number.parseFloat(x).toFixed(5)
   }
 
-  const genericStatsData: StatsTileProps[] = [
+  const networkStatsData: StatsTileProps[] = [
     {
       title: 'MasterNode contract balance',
       value: `${financial(formatEther(balance))} STRAX`,
@@ -240,10 +237,6 @@ const Content = () => {
     {
       title: 'Total registrations',
       value: totalRegistrations,
-    },
-    {
-      title: 'APR',
-      value: `${(totalRegistrations ? 2102400 * 30 / Number(totalRegistrations) / 1000000 * 100 : 0).toLocaleString()}%`,
     },
     {
       title: 'APR',
@@ -274,6 +267,36 @@ const Content = () => {
     },
   ]
 
+  const renderStats = useCallback(() => {
+    return (
+      <>
+        <div className="grid md:grid-cols-3 gap-6 group" data-highlighter="">
+          {networkStatsData.map((data, index) => (
+            <StatsTile
+              key={index}
+              title={data.title}
+              value={data.value}
+            />
+          ))}
+          {address && userType !== UserType.UNKNOWN ? (
+            userStatsData.map((data, index) => (
+              <StatsTile
+                key={index}
+                title={data.title}
+                value={data.value}
+              />
+            ))
+          ) : null}
+        </div>
+        {address && userType !== UserType.UNKNOWN ? (
+          <div className="flex items-center gap-3 pt-4">
+            {renderAction()}
+          </div>
+        ) : null}
+      </>
+    )
+  }, [address, userType, networkStatsData, userStatsData, renderAction])
+
   useEffect(() => {
     AOS.init({
       once: true,
@@ -295,13 +318,8 @@ const Content = () => {
 
   return (
     <main className="grow">
-      <LegacyUserWarningModal onConfirm={()=>{
-        dispatch(updateIsWarningModalOpen(false))
-        completeWithdrawal()
-      }}/>
       <section>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6">
-
           <div className="absolute inset-0 -z-10" aria-hidden="true">
             <canvas data-particle-animation></canvas>
           </div>
@@ -328,31 +346,7 @@ const Content = () => {
                     transform="translate(-346 -898)"></path>
                 </svg>
               </div>
-              <div className="grid md:grid-cols-3 gap-6 group" data-highlighter="">
-                {genericStatsData.map((data, index) => (
-                  <StatsTile
-                    key={index}
-                    title={data.title}
-                    value={data.value}
-                  />
-                ))}
-              </div>
-              {userType !== UserType.UNKNOWN ? (
-                <>
-                  <div className="grid md:grid-cols-3 gap-6 group mt-6" data-highlighter="">
-                    {userStatsData.map((data, index) => (
-                      <StatsTile
-                        key={index}
-                        title={data.title}
-                        value={data.value}
-                      />
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-3 pt-4">
-                    {renderAction()}
-                  </div>
-                </>
-              ) : null}
+              {renderStats()}
             </div>
             {(!isMSTRAXTokenSupported && isOwner) ? (
               <div>
@@ -393,6 +387,7 @@ const Content = () => {
           onClose={() => {
             hideModal()
           }}
+          isWithdraw={!isClaim}
         />
       )}
     </main>

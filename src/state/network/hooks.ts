@@ -1,11 +1,9 @@
 import { useCallback } from 'react'
-import { useWeb3React } from '@web3-react/core'
+import { useAccount, useChainId, useSwitchChain } from 'wagmi'
 
 import { useAppDispatch, useAppSelector } from 'state'
-import { ChainId, getAddChainParameters, CHAINS } from 'web3/chains'
-import { networkConnection } from 'web3/connection'
-import { isSupportedChain } from 'web3/utils'
-
+import { ChainId } from 'web3/chains'
+import { CHAINS } from 'web3/chains'
 import { setSiteNetworkId } from './reducer'
 
 export function useSiteNetworkId() {
@@ -13,46 +11,47 @@ export function useSiteNetworkId() {
 }
 
 export function useActiveChainId() {
-  const { chainId, isActive } = useWeb3React()
+  const chainId = useChainId()
   const siteNetworkId = useSiteNetworkId()
 
-  if (!isActive) {
+  // Only update from wallet chain if connected and we don't have a site network ID
+  if (siteNetworkId) {
     return siteNetworkId
   }
 
-  return chainId as ChainId
-}
-
-export function useFallbackChainId() {
-  const { chainId, isActive } = useWeb3React()
-  const siteNetworkId = useAppSelector(state => state.network.siteNetworkId)
-
-  if (!isActive || !isSupportedChain(chainId)) {
-    return siteNetworkId
-  }
-
+  // Return the site's selected network
   return chainId as ChainId
 }
 
 export function useActiveNetwork() {
   const chainId = useActiveChainId()
-
-  return (chainId && isSupportedChain(chainId)) ? CHAINS[chainId] : undefined
+  return CHAINS[chainId]
 }
 
 export function useSwitchNetwork() {
+  const { switchChain } = useSwitchChain()
+  const { address } = useAccount()
   const dispatch = useAppDispatch()
-  const { connector, account } = useWeb3React()
+  const chainId = useActiveChainId()
 
-  return useCallback(async (chainId: ChainId) => {
-    if (!account) {
-      await networkConnection.connector.activate(chainId)
-    } else {
-      await connector.activate(getAddChainParameters(chainId))
-    }
+  return useCallback(
+    async (newChainId: ChainId) => {
+      try {
+        // Always update the site network ID first
+        dispatch(setSiteNetworkId(newChainId))
 
-    if (isSupportedChain(chainId)) {
-      dispatch(setSiteNetworkId(chainId))
-    }
-  }, [dispatch, account, connector])
+        await switchChain({ chainId: newChainId })
+      } catch (error) {
+        console.error('Failed to switch network', error)
+        // If switch fails, revert to current chain
+        dispatch(setSiteNetworkId(chainId))
+      }
+    },
+    [
+      address,
+      switchChain,
+      dispatch,
+      chainId,
+    ],
+  )
 }

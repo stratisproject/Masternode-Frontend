@@ -1,11 +1,12 @@
 import { useCallback, useMemo } from 'react'
-import { useWeb3React } from '@web3-react/core'
-import { BigNumber } from '@ethersproject/bignumber'
-
-import { useMasterNodeContract, useMSTRAXTokenContract, useMulticall3Contract } from 'hooks/useContract'
-import { DEFAULT_OWNER } from '../../constants'
+import { usePublicClient, useAccount } from 'wagmi'
+import { BigNumber } from 'ethers'
 
 import { useAppDispatch, useAppSelector } from 'state'
+
+import { MASTERNODE_ADDRESS, MULTICALL3_ADDRESS, DEFAULT_OWNER } from '../../constants'
+import MASTERNODE_ABI from 'constants/abis/masterNode'
+import MULTICALL3_ABI from 'constants/multicall3'
 
 import {
   setOwner,
@@ -19,138 +20,88 @@ import {
   setTotalRegistrations,
   setLastBalance,
   setWithdrawingCollateralAmount,
-  setIsMSTRAXTokenSupported,
 } from './reducer'
 
 export function useUpdateData() {
   const dispatch = useAppDispatch()
-  const contract = useMasterNodeContract()
-  const mSTRAXTokenContract = useMSTRAXTokenContract(false)
-  const multicall3Contract = useMulticall3Contract()
+  const client = usePublicClient()
 
   return useCallback(async () => {
-    if (!contract || !multicall3Contract) {
+    if (!client) {
       return
     }
 
     const calls = [{
-      call: {
-        target: multicall3Contract.address,
-        callData: multicall3Contract.interface.encodeFunctionData('getEthBalance', [contract.address]),
-      },
-      onResult(r: any) {
-        const [balance] = multicall3Contract.interface.decodeFunctionResult('getEthBalance', r)
-        dispatch(setContractBalance(balance.toString()))
-      },
+      address: MULTICALL3_ADDRESS,
+      abi: MULTICALL3_ABI,
+      functionName: 'getEthBalance',
+      args: [MASTERNODE_ADDRESS],
     }, {
-      call: {
-        target: contract.address,
-        callData: contract.interface.encodeFunctionData('owner'),
-      },
-      onResult(r: any) {
-        const [owner] = contract.interface.decodeFunctionResult('owner', r)
-        dispatch(setOwner(owner))
-      },
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'totalRegistrations',
     }, {
-      call: {
-        target: contract.address,
-        callData: contract.interface.encodeFunctionData('COLLATERAL_AMOUNT'),
-      },
-      onResult(r: any) {
-        const [collateralAmount] = contract.interface.decodeFunctionResult('COLLATERAL_AMOUNT', r)
-        dispatch(setCollateralAmount(collateralAmount.toString()))
-      },
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'totalCollateralAmount',
     }, {
-      call: {
-        target: contract.address,
-        callData: contract.interface.encodeFunctionData('COLLATERAL_AMOUNT_LEGACY'),
-      },
-      onResult(r: any) {
-        const [collateralAmountLegacy] = contract.interface.decodeFunctionResult('COLLATERAL_AMOUNT_LEGACY', r)
-        dispatch(setCollateralAmountLegacy(collateralAmountLegacy.toString()))
-      },
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'totalDividends',
     }, {
-      call: {
-        target: contract.address,
-        callData: contract.interface.encodeFunctionData('WITHDRAWAL_DELAY'),
-      },
-      onResult(r: any) {
-        const [withdrawalDelay] = contract.interface.decodeFunctionResult('WITHDRAWAL_DELAY', r)
-        dispatch(setWithdrawalDelay(withdrawalDelay.toNumber()))
-      },
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'lastBalance',
     }, {
-      call: {
-        target: contract.address,
-        callData: contract.interface.encodeFunctionData('totalCollateralAmount'),
-      },
-      onResult(r: any) {
-        const [totalCollateralAmount] = contract.interface.decodeFunctionResult('totalCollateralAmount', r)
-        dispatch(setTotalCollateralAmount(totalCollateralAmount.toString()))
-      },
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'withdrawingCollateralAmount',
     }, {
-      call: {
-        target: contract.address,
-        callData: contract.interface.encodeFunctionData('totalTokensBalance'),
-      },
-      onResult(r: any) {
-        const [totalTokensBalance] = contract.interface.decodeFunctionResult('totalTokensBalance', r)
-        dispatch(setTotalTokensBalance(totalTokensBalance.toString()))
-      },
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'totalTokensBalance',
     }, {
-      call: {
-        target: contract.address,
-        callData: contract.interface.encodeFunctionData('totalDividends'),
-      },
-      onResult(r: any) {
-        const [totalDividends] = contract.interface.decodeFunctionResult('totalDividends', r)
-        dispatch(setTotalDividends(totalDividends.toString()))
-      },
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'owner',
     }, {
-      call: {
-        target: contract.address,
-        callData: contract.interface.encodeFunctionData('totalRegistrations'),
-      },
-      onResult(r: any) {
-        const [totalRegistrations] = contract.interface.decodeFunctionResult('totalRegistrations', r)
-        dispatch(setTotalRegistrations(totalRegistrations.toNumber()))
-      },
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'COLLATERAL_AMOUNT',
     }, {
-      call: {
-        target: contract.address,
-        callData: contract.interface.encodeFunctionData('lastBalance'),
-      },
-      onResult(r: any) {
-        const [lastBalance] = contract.interface.decodeFunctionResult('lastBalance', r)
-        dispatch(setLastBalance(lastBalance.toString()))
-      },
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'COLLATERAL_AMOUNT_LEGACY',
     }, {
-      call: {
-        target: contract.address,
-        callData: contract.interface.encodeFunctionData('withdrawingCollateralAmount'),
-      },
-      onResult(r: any) {
-        const [withdrawingCollateralAmount] = contract.interface.decodeFunctionResult('withdrawingCollateralAmount', r)
-        dispatch(setWithdrawingCollateralAmount(withdrawingCollateralAmount.toString()))
-      },
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'WITHDRAWAL_DELAY',
     }]
 
-    const result = await multicall3Contract.callStatic.aggregate(calls.map(({ call }) => call))
-    result.returnData.map((r, idx) => calls[idx].onResult(r))
+    // @ts-ignore
+    const response = await client.multicall({
+      contracts: calls as any,
+    })
 
-    let mSTRAXTokenSupported = false
-    if (mSTRAXTokenContract) {
-      mSTRAXTokenSupported = await contract.supportedTokens(mSTRAXTokenContract.address)
-    }
-
-    dispatch(setIsMSTRAXTokenSupported(mSTRAXTokenSupported))
-  }, [dispatch, contract, mSTRAXTokenContract, multicall3Contract])
+    dispatch(setContractBalance((response[0]?.result as bigint).toString()))
+    dispatch(setTotalRegistrations(Number(response[1]?.result as bigint)))
+    dispatch(setTotalCollateralAmount((response[2]?.result as bigint).toString()))
+    dispatch(setTotalDividends((response[3]?.result as bigint).toString()))
+    dispatch(setLastBalance((response[4]?.result as bigint).toString()))
+    dispatch(setWithdrawingCollateralAmount((response[5]?.result as bigint).toString()))
+    dispatch(setTotalTokensBalance((response[6]?.result as bigint).toString()))
+    dispatch(setOwner(response[7]?.result as string))
+    dispatch(setCollateralAmount((response[8]?.result as bigint).toString()))
+    dispatch(setCollateralAmountLegacy((response[9]?.result as bigint).toString()))
+    dispatch(setWithdrawalDelay(Number(response[10]?.result as bigint)))
+  }, [dispatch, client])
 }
 
 export function useIsOwner() {
-  const { account } = useWeb3React()
+  const { address } = useAccount()
   const owner = useAppSelector(state => state.stats.owner)
 
-  return (!!account && (account.toLowerCase() === owner.toLowerCase() || account.toLowerCase() === DEFAULT_OWNER.toLowerCase()))
+  return (!!address && (address.toLowerCase() === owner.toLowerCase() || address.toLowerCase() === DEFAULT_OWNER.toLowerCase()))
 }
 
 export function useContractBalance() {

@@ -4,7 +4,7 @@ import STRATIS_ICON from 'assets/images/networks/stratis_logo_white.svg'
 
 export enum ChainId {
   STRATIS = 105105,
-  AURORIA = 205205,
+  AURORIA = 205205
 }
 
 export const DEFAULT_CHAIN_ID = ChainId.AURORIA
@@ -57,7 +57,7 @@ type ChainConfig = { [key in ChainId]: ChainInfo }
 export const CHAINS: ChainConfig = {
   [ChainId.STRATIS]: {
     id: ChainId.STRATIS,
-    name: 'Stratis',
+    name: 'Stratis Mainnet',
     icon: STRATIS_ICON,
     urls: ['https://rpc.stratisevm.com'],
     nativeCurrency: STRATIS_CURRENCY,

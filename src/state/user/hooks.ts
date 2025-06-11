@@ -1,12 +1,20 @@
 import { useCallback, useMemo } from 'react'
-import { useWeb3React } from '@web3-react/core'
+import { useAccount, useChainId, usePublicClient } from 'wagmi'
 import { BigNumber } from 'ethers'
 
-import { useMasterNodeContract, useMSTRAXTokenContract, useMulticall3Contract } from 'hooks/useContract'
-import { BLOCK_TIME_SECONDS } from '../../constants'
+import {
+  MASTERNODE_ADDRESS,
+  MULTICALL3_ADDRESS,
+  MSTRAX_TOKEN_ADDRESSES,
+  BLOCK_SECONDS,
+} from '../../constants'
+import MASTERNODE_ABI from 'constants/abis/masterNode'
+import MULTICALL3_ABI from 'constants/multicall3'
+import ERC20_ABI from 'constants/abis/erc20'
 
 import { useAppDispatch, useAppSelector } from 'state'
 import { RegistrationStatus, UserType } from 'types'
+import { ChainId } from 'web3/chains'
 
 import {
   useContractBalance,
@@ -37,95 +45,86 @@ import {
 
 export function useUpdateData() {
   const dispatch = useAppDispatch()
-  const { account } = useWeb3React()
-  const contract = useMasterNodeContract()
-  const mSTRAXTokenContract = useMSTRAXTokenContract()
-  const multicall3Contract = useMulticall3Contract()
+  const { address } = useAccount()
+  const chainId = useChainId()
+  const client = usePublicClient()
   const withdrawalDelay = useWithdrawalDelay()
+  const mstraxTokenAddress = MSTRAX_TOKEN_ADDRESSES[chainId as ChainId]
 
   return useCallback(async () => {
-    if (!account || !contract || !multicall3Contract) {
+    if (!client || !address) {
       dispatch(resetState())
       return
     }
 
-    let lastBlock = 0
-    let regStatus: RegistrationStatus = RegistrationStatus.UNREGISTERED
     const calls = [{
-      call: {
-        target: multicall3Contract.address,
-        callData: multicall3Contract.interface.encodeFunctionData('getEthBalance', [account]),
-      },
-      onResult(r: any) {
-        const [balance] = multicall3Contract.interface.decodeFunctionResult('getEthBalance', r)
-        dispatch(setBalance(balance.toString()))
-      },
+      address: MULTICALL3_ADDRESS,
+      abi: MULTICALL3_ABI,
+      functionName: 'getEthBalance',
+      args: [address],
     }, {
-      call: {
-        target: contract.address,
-        callData: contract.interface.encodeFunctionData('legacy', [account]),
-      },
-      onResult(r: any) {
-        const [legacy] = contract.interface.decodeFunctionResult('legacy', r)
-        dispatch(setType(legacy ? UserType.LEGACY : UserType.REGULAR))
-      },
+      address: MULTICALL3_ADDRESS,
+      abi: MULTICALL3_ABI,
+      functionName: 'getBlockNumber',
     }, {
-      call: {
-        target: contract.address,
-        callData: contract.interface.encodeFunctionData('registrationStatus', [account]),
-      },
-      onResult(r: any) {
-        const [registrationStatus] = contract.interface.decodeFunctionResult('registrationStatus', r)
-        regStatus = registrationStatus
-        dispatch(setRegistrationStatus(registrationStatus))
-      },
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'accounts',
+      args: [address],
     }, {
-      call: {
-        target: contract.address,
-        callData: contract.interface.encodeFunctionData('accountRegisterToken', [account]),
-      },
-      onResult(r: any) {
-        const [registerToken] = contract.interface.decodeFunctionResult('accountRegisterToken', r)
-        dispatch(setRegisterToken(registerToken))
-      },
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'registrationStatus',
+      args: [address],
     }, {
-      call: {
-        target: contract.address,
-        callData: contract.interface.encodeFunctionData('accounts', [account]),
-      },
-      onResult(r: any) {
-        const decoded = contract.interface.decodeFunctionResult('accounts', r)
-        lastBlock = decoded.lastClaimedBlock.toNumber()
-        dispatch(setAccountBalance(decoded.balance.toString()))
-        dispatch(setLastClaimedBlock(decoded.lastClaimedBlock.toNumber()))
-        dispatch(setLastDividends(decoded.lastDividends.toString()))
-      },
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'legacy',
+      args: [address],
+    }, {
+      address: MASTERNODE_ADDRESS,
+      abi: MASTERNODE_ABI,
+      functionName: 'accountRegisterToken',
+      args: [address],
     }]
-
-    const { returnData, blockNumber } = await multicall3Contract.callStatic.aggregate(calls.map(({ call }) => call))
-    returnData.map((r, idx) => calls[idx].onResult(r))
-
-    dispatch(setSinceLastClaim(blockNumber.toNumber() - lastBlock))
-
-    let totalSeconds = 0
-    if (regStatus.valueOf() === RegistrationStatus.WITHDRAWING) {
-      totalSeconds = (lastBlock + withdrawalDelay - blockNumber.toNumber()) * BLOCK_TIME_SECONDS
-    }
-    if (totalSeconds < 0) {
-      totalSeconds = 0
+    if (mstraxTokenAddress) {
+      calls.push({
+        address: mstraxTokenAddress,
+        abi: ERC20_ABI as any,
+        functionName: 'balanceOf',
+        args: [address],
+      })
     }
 
-    dispatch(setTotalSeconds(totalSeconds))
+    // @ts-ignore
+    const [ balance, blockNumber, account, registrationStatus, isLegacy, accountRegisterToken, mstraxBalance ] = await client.multicall({
+      contracts: calls as any,
+    })
+    const accountBalance: bigint = (account?.result as any[])[0]
+    const lastDividends: bigint = (account?.result as any[])[1]
+    const lastClaimedBlock: number = (account?.result as any[])[2]
 
-    // Update mSTRAX token balance
-    let mSTRAXTokenBalance = '0'
-    if (mSTRAXTokenContract) {
-      const bal = await mSTRAXTokenContract.balanceOf(account)
-      mSTRAXTokenBalance = bal.toString()
+    dispatch(setBalance((balance?.result as bigint).toString()))
+    dispatch(setAccountBalance(accountBalance.toString()))
+    dispatch(setLastDividends(lastDividends.toString()))
+    dispatch(setRegistrationStatus(registrationStatus?.result as any))
+    dispatch(setLastClaimedBlock(Number(lastClaimedBlock)))
+    dispatch(setSinceLastClaim(Number(blockNumber?.result) - Number(lastClaimedBlock)))
+    dispatch(setType(isLegacy ? UserType.LEGACY : UserType.REGULAR))
+    dispatch(setRegisterToken(accountRegisterToken?.result as string))
+
+    if (registrationStatus?.result !== RegistrationStatus.WITHDRAWING) {
+      dispatch(setTotalSeconds(0))
+    } else {
+      const totalSeconds = (Number(lastClaimedBlock) + withdrawalDelay - Number(blockNumber?.result)) * BLOCK_SECONDS
+      dispatch(setTotalSeconds(totalSeconds))
     }
-
-    dispatch(setMSTRAXBalance(mSTRAXTokenBalance))
-  }, [account, dispatch, contract, mSTRAXTokenContract, multicall3Contract, withdrawalDelay])
+    if (mstraxBalance) {
+      dispatch(setMSTRAXBalance((mstraxBalance?.result as bigint).toString()))
+    } else {
+      dispatch(setMSTRAXBalance('0'))
+    }
+  }, [dispatch, client, address, withdrawalDelay, mstraxTokenAddress])
 }
 
 export function useUserBalance() {
@@ -138,9 +137,53 @@ export function useUserMSTRAXTokenBalance() {
   return useMemo(() => BigNumber.from(value), [value])
 }
 
+export function useUserRewards() {
+  const { address } = useAccount()
+  const userStatus = useUserRegistrationStatus()
+  const sinceLastClaim = useUserSinceLastClaim()
+  const contractBalance = useContractBalance()
+  const lastClaimedBlock = useUserLastClaimedBlock()
+  const totalCollateralAmount = useTotalCollateralAmount()
+  const totalRegistrations = useTotalRegistrations()
+  const totalTokensBalance = useTotalTokensBalance()
+  const totalDividends = useTotalDividends()
+  const lastBalance = useLastBalance()
+  const withdrawingCollateralAmount = useWithdrawingCollateralAmount()
+  const userLastDividends = useUserLastDividends()
+
+  return useMemo(() => {
+    if (!address || userStatus !== RegistrationStatus.REGISTERED || sinceLastClaim === 0 || totalRegistrations === 0) {
+      return BigNumber.from(0)
+    }
+
+    const amount = contractBalance.add(totalTokensBalance).sub(lastBalance).sub(totalCollateralAmount).sub(withdrawingCollateralAmount)
+
+    const newTotalDividends = totalDividends.add(amount.div(totalRegistrations))
+
+    const value = newTotalDividends.sub(userLastDividends)
+    // Ensure rewards are never negative
+    const finalValue = value.lt(0) ? BigNumber.from(0) : value
+
+    return finalValue
+  }, [
+    address,
+    userStatus,
+    contractBalance,
+    lastClaimedBlock,
+    sinceLastClaim,
+    totalCollateralAmount,
+    totalRegistrations,
+    totalTokensBalance,
+    totalDividends,
+    lastBalance,
+    withdrawingCollateralAmount,
+    userLastDividends,
+  ])
+}
+
 export function useUserLastDividends() {
-  const value = useAppSelector(state => state.user.lastDividends)
-  return useMemo(() => BigNumber.from(value), [value])
+  const val = useAppSelector(state => state.user.lastDividends)
+  return useMemo(() => BigNumber.from(val), [val])
 }
 
 export function useUserRegistrationStatus() {
@@ -161,43 +204,6 @@ export function useUserType() {
 
 export function useTotalSeconds() {
   return useAppSelector(state => state.user.totalSeconds)
-}
-
-export function useUserRewards() {
-  const { account } = useWeb3React()
-  const registrationStatus = useUserRegistrationStatus()
-  const sinceLastClaim = useUserSinceLastClaim()
-  const lastDividends = useUserLastDividends()
-  const contractBalance = useContractBalance()
-  const totalRegistrations = useTotalRegistrations()
-  const totalDividends = useTotalDividends()
-  const totalCollateralAmount = useTotalCollateralAmount()
-  const totalTokensBalance = useTotalTokensBalance()
-  const lastBalance = useLastBalance()
-  const withdrawingCollateralAmount = useWithdrawingCollateralAmount()
-
-  return useMemo(() => {
-    if (!account || registrationStatus !== RegistrationStatus.REGISTERED || sinceLastClaim === 0 || totalRegistrations === 0) {
-      return BigNumber.from(0)
-    }
-
-    const amount = contractBalance.add(totalTokensBalance).sub(lastBalance).sub(totalCollateralAmount).sub(withdrawingCollateralAmount)
-    const newTotalDividends = totalDividends.add(amount.div(totalRegistrations))
-
-    return newTotalDividends.sub(lastDividends)
-  }, [
-    account,
-    registrationStatus,
-    sinceLastClaim,
-    lastDividends.toString(),
-    contractBalance.toString(),
-    totalRegistrations,
-    totalDividends.toString(),
-    totalCollateralAmount.toString(),
-    totalTokensBalance.toString(),
-    lastBalance.toString(),
-    withdrawingCollateralAmount.toString(),
-  ])
 }
 
 export function useUserCollateralAmount() {

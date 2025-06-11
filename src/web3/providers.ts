@@ -3,7 +3,7 @@ import { StaticJsonRpcProvider } from '@ethersproject/providers'
 import { isPlain } from '@reduxjs/toolkit'
 
 import { ChainId, CHAINS } from './chains'
-import { AVERAGE_L1_BLOCK_TIME } from './chainInfo'
+//import { AVERAGE_L1_BLOCK_TIME } from './chainInfo'
 
 class AppJsonRpcProvider extends StaticJsonRpcProvider {
   private _blockCache = new Map<string, Promise<any>>()
@@ -17,7 +17,7 @@ class AppJsonRpcProvider extends StaticJsonRpcProvider {
   constructor(chainId: ChainId) {
     super(CHAINS[chainId].urls[0], { chainId, name: CHAINS[chainId].name })
 
-    this.pollingInterval = AVERAGE_L1_BLOCK_TIME
+    this.pollingInterval = 120000 // AVERAGE_L1_BLOCK_TIME
   }
 
   send(method: string, params: Array<any>): Promise<any> {

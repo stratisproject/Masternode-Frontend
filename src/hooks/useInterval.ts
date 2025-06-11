@@ -20,7 +20,7 @@ export default function useInterval(callback: () => void | Promise<void> | Promi
 
     return () => {
       if (id) {
-        clearTimeout(id)
+        clearInterval(id)
       }
     }
   }, [callback, delay, leading])

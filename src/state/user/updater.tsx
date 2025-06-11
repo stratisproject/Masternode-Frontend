@@ -2,20 +2,18 @@ import { useCallback } from 'react'
 
 import useInterval from 'hooks/useInterval'
 
-import {
-  useUpdateData,
-} from './hooks'
+import { useUpdateData } from './hooks'
 
 export default function Updater() {
-  const updateData = useUpdateData()
+  const updateAllData = useUpdateData()
 
-  const update = useCallback(async () => {
-    updateData()
+  const updateData = useCallback(async () => {
+    updateAllData()
   }, [
-    updateData,
+    updateAllData,
   ])
 
-  useInterval(update, 3000)
+  useInterval(updateData, 15000)
 
   return null
 }
