@@ -62,7 +62,7 @@ export const CHAINS: ChainConfig = {
     urls: ['https://rpc.stratisevm.com'],
     nativeCurrency: STRATIS_CURRENCY,
     blockExplorerUrls: ['https://explorer.stratisevm.com'],
-    available: false,
+    available: true,
     testnet: false,
   },
   [ChainId.AURORIA]: {
