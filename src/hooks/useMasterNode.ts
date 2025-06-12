@@ -119,9 +119,6 @@ export function useRegisterUserMSTRAXToken() {
         console.log('Transaction successful:', receipt)
       }
 
-      const tx = await contract.registerToken(mSTRAXTokenContract.address, collateralAmount)
-      await tx.wait()
-
       const data = contract.interface.encodeFunctionData('registerToken', [mSTRAXTokenContract.address, collateralAmount])
 
       const hash = await walletClient.request({
@@ -311,9 +308,6 @@ export function useEnableMSTRAXTokenSupport() {
 
     setPending(true)
     try {
-      const tx = await contract.setSupportedToken(mSTRAXTokenContract.address, true)
-      await tx.wait()
-
       const data = contract.interface.encodeFunctionData('setSupportedToken', [mSTRAXTokenContract.address, true])
       const hash = await walletClient.request({
         method: 'eth_sendTransaction',
