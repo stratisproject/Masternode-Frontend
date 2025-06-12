@@ -7,7 +7,7 @@ export enum ChainId {
   AURORIA = 205205
 }
 
-export const DEFAULT_CHAIN_ID = ChainId.STRATIS
+export const DEFAULT_CHAIN_ID = ChainId.AURORIA
 
 export const STRATIS_CURRENCY: AddEthereumChainParameter['nativeCurrency'] = {
   name: 'Strax',
@@ -79,5 +79,5 @@ export const CHAINS: ChainConfig = {
 
 
 export const ALL_SUPPORTED_CHAIN_IDS: ChainId[] = Object.values(ChainId).filter(
-  id => typeof id === 'number',
+  id => typeof id === 'number' && CHAINS[id].available,
 ) as ChainId[]

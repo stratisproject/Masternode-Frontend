@@ -2,37 +2,15 @@ import { useCallback } from 'react'
 
 import useInterval from 'hooks/useInterval'
 
-import {
-  useUpdateBalance,
-  useUpdateRewards,
-  useUpdateLastClaimedBlock,
-  useUpdateRegistrationStatus,
-  useUpdateType,
-  useUpdateTotalSeconds,
-} from './hooks'
+import { useUpdateData } from './hooks'
 
 export default function Updater() {
-  const updateBalance = useUpdateBalance()
-  const updateRewards = useUpdateRewards()
-  const updateLastClaimedBlock = useUpdateLastClaimedBlock()
-  const updateRegistrationStatus = useUpdateRegistrationStatus()
-  const updateType = useUpdateType()
-  const updateTotalSeconds = useUpdateTotalSeconds()
+  const updateAllData = useUpdateData()
 
   const updateData = useCallback(async () => {
-    updateBalance()
-    updateRewards()
-    updateLastClaimedBlock()
-    updateRegistrationStatus()
-    updateType()
-    updateTotalSeconds()
+    updateAllData()
   }, [
-    updateBalance,
-    updateRewards,
-    updateLastClaimedBlock,
-    updateRegistrationStatus,
-    updateType,
-    updateTotalSeconds,
+    updateAllData,
   ])
 
   useInterval(updateData, 15000)

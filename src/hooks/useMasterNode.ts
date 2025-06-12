@@ -2,16 +2,17 @@ import { useState, useCallback } from 'react'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import { formatEther } from 'viem'
 
+import { useIsMSTRAXTokenSupported, useIsOwner, useWithdrawalDelay, useCollateralAmount } from 'state/stats/hooks'
 import {
   useUserBalance,
+  useUserMSTRAXTokenBalance,
   useUserType,
   useUserRegistrationStatus,
   useUserSinceLastClaim,
+  useUserCollateralAmount,
 } from 'state/user/hooks'
 
-import { WITHDRAWAL_DELAY } from '../constants'
-
-import { useMasterNodeContract } from './useContract'
+import { useMSTRAXTokenContract, useMasterNodeContract } from './useContract'
 
 import { RegistrationStatus, UserType } from 'types'
 
@@ -23,6 +24,7 @@ export function useRegisterUser() {
   const balance = useUserBalance()
   const userType = useUserType()
   const status = useUserRegistrationStatus()
+  const collateralAmount = useCollateralAmount()
 
   const [pending, setPending] = useState(false)
 
@@ -32,7 +34,6 @@ export function useRegisterUser() {
     }
 
     try {
-      const collateralAmount = await contract.COLLATERAL_AMOUNT()
       const collateralAmountBigInt = BigInt(collateralAmount.toString())
       const balanceBigInt = BigInt(balance.toString())
       console.log('Required collateral amount:', formatEther(collateralAmountBigInt), 'STRAX')
@@ -68,9 +69,93 @@ export function useRegisterUser() {
     } finally {
       setPending(false)
     }
-  }, [userType, status, balance.toString(), address, contract, walletClient, publicClient])
+  }, [userType, status, balance.toString(), address, contract, walletClient, publicClient, collateralAmount])
 
   return { pending, registerUser }
+}
+
+export function useRegisterUserMSTRAXToken() {
+  const { address } = useAccount()
+  const { data: walletClient } = useWalletClient()
+  const publicClient = usePublicClient()
+  const contract = useMasterNodeContract()
+  const mSTRAXTokenContract = useMSTRAXTokenContract()
+  const mSTRAXTokenBalance = useUserMSTRAXTokenBalance()
+  const userType = useUserType()
+  const status = useUserRegistrationStatus()
+  const collateralAmount = useUserCollateralAmount()
+
+  const [pending, setPending] = useState(false)
+
+  const registerUserMSTRAXToken  = useCallback(async () => {
+    if (!walletClient || !publicClient || !contract || !mSTRAXTokenContract || !address || userType === UserType.UNKNOWN || status != RegistrationStatus.UNREGISTERED) {
+      return
+    }
+
+    if (mSTRAXTokenBalance.lt(collateralAmount)) {
+      console.log('Not enough balance')
+      return
+    }
+
+    setPending(true)
+    try {
+      const allowance = await mSTRAXTokenContract.allowance(address, contract.address)
+      if (allowance.lt(collateralAmount)) {
+        const data = mSTRAXTokenContract.interface.encodeFunctionData('approve', [contract.address, collateralAmount])
+
+        const hash = await walletClient.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: address,
+            to: mSTRAXTokenContract.address as `0x${string}`,
+            data: data as `0x${string}`,
+          }],
+        }) as `0x${string}`
+        // Wait for the transaction to be mined
+        const receipt = await publicClient.request({
+          method: 'eth_getTransactionReceipt',
+          params: [hash],
+        })
+        console.log('Transaction successful:', receipt)
+      }
+
+      const tx = await contract.registerToken(mSTRAXTokenContract.address, collateralAmount)
+      await tx.wait()
+
+      const data = contract.interface.encodeFunctionData('registerToken', [mSTRAXTokenContract.address, collateralAmount])
+
+      const hash = await walletClient.request({
+        method: 'eth_sendTransaction',
+        params: [{
+          from: address,
+          to: contract.address as `0x${string}`,
+          data: data as `0x${string}`,
+        }],
+      }) as `0x${string}`
+      // Wait for the transaction to be mined
+      const receipt = await publicClient.request({
+        method: 'eth_getTransactionReceipt',
+        params: [hash],
+      })
+      console.log('Transaction successful:', receipt)
+    } catch (error) {
+      console.error(`Failed to register user mSTRAX token: ${error}`)
+    } finally {
+      setPending(false)
+    }
+  }, [
+    mSTRAXTokenBalance.toString(),
+    userType,
+    status,
+    collateralAmount.toString(),
+    address,
+    contract,
+    mSTRAXTokenContract,
+    walletClient,
+    publicClient,
+  ])
+
+  return { pending, registerUserMSTRAXToken }
 }
 
 export function useClaimRewards() {
@@ -168,11 +253,12 @@ export function useCompleteWithdrawal() {
   const contract = useMasterNodeContract()
   const status = useUserRegistrationStatus()
   const sinceLastClaim = useUserSinceLastClaim()
+  const withdrawalDelay = useWithdrawalDelay()
 
   const [pending, setPending] = useState(false)
 
   const completeWithdrawal = useCallback(async () => {
-    if (!contract || !address || !walletClient || !publicClient || status !== RegistrationStatus.WITHDRAWING || sinceLastClaim < WITHDRAWAL_DELAY) {
+    if (!contract || !address || !walletClient || !publicClient || status !== RegistrationStatus.WITHDRAWING || sinceLastClaim < withdrawalDelay) {
       return
     }
 
@@ -202,7 +288,53 @@ export function useCompleteWithdrawal() {
     } finally {
       setPending(false)
     }
-  }, [address, contract, status, sinceLastClaim, walletClient, publicClient])
+  }, [address, contract, status, sinceLastClaim, walletClient, publicClient, withdrawalDelay])
 
   return { pending, completeWithdrawal }
+}
+
+export function useEnableMSTRAXTokenSupport() {
+  const { address } = useAccount()
+  const { data: walletClient } = useWalletClient()
+  const publicClient = usePublicClient()
+  const contract = useMasterNodeContract()
+  const mSTRAXTokenContract = useMSTRAXTokenContract()
+  const isOwner = useIsOwner()
+  const isMSTRAXTokenSupported = useIsMSTRAXTokenSupported()
+
+  const [pending, setPending] = useState(false)
+
+  const enableMSTRAXTokenSupport = useCallback(async () => {
+    if (!walletClient || !publicClient || !address || !contract || !mSTRAXTokenContract || isMSTRAXTokenSupported || !isOwner) {
+      return
+    }
+
+    setPending(true)
+    try {
+      const tx = await contract.setSupportedToken(mSTRAXTokenContract.address, true)
+      await tx.wait()
+
+      const data = contract.interface.encodeFunctionData('setSupportedToken', [mSTRAXTokenContract.address, true])
+      const hash = await walletClient.request({
+        method: 'eth_sendTransaction',
+        params: [{
+          from: address,
+          to: mSTRAXTokenContract.address as `0x${string}`,
+          data: data as `0x${string}`,
+        }],
+      }) as `0x${string}`
+      // Wait for the transaction to be mined
+      const receipt = await publicClient.request({
+        method: 'eth_getTransactionReceipt',
+        params: [hash],
+      })
+      console.log('Transaction successful:', receipt)
+    } catch (err) {
+      console.error(`Failed to enable mSTRAX token support ${err}`)
+    } finally {
+      setPending(false)
+    }
+  }, [address, isOwner, isMSTRAXTokenSupported, contract, mSTRAXTokenContract, walletClient, publicClient])
+
+  return { pending, enableMSTRAXTokenSupport }
 }

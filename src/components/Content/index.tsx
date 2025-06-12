@@ -21,13 +21,16 @@ import {
 
 import {
   useRegisterUser,
+  useRegisterUserMSTRAXToken,
   useClaimRewards,
   useStartWithdrawal,
   useCompleteWithdrawal,
+  useEnableMSTRAXTokenSupport,
 } from 'hooks/useMasterNode'
 
 import {
   useUserBalance,
+  useUserMSTRAXTokenBalance,
   useUserRewards,
   useUserLastClaimedBlock,
   useUserSinceLastClaim,
@@ -39,11 +42,13 @@ import {
 
 import {
   useContractBalance,
+  useTotalTokensBalance,
+  useIsMSTRAXTokenSupported,
+  useIsOwner,
   useTotalCollateralAmount,
   useTotalRegistrations,
+  useWithdrawalDelay,
 } from 'state/stats/hooks'
-
-import { WITHDRAWAL_DELAY, COLLATERAL_AMOUNT } from '../../constants'
 
 import StatsTile, { StatsTileProps } from './StatsTile'
 import { ParticleAnimation } from 'utils/particles'
@@ -53,17 +58,24 @@ import CountdownTimer from 'components/CountdownTimer'
 const Content = () => {
   const { address } = useAccount()
   const { pending: pendingRegisterUser, registerUser } = useRegisterUser()
+  const { pending: pendingRegisterUserMSTRAXToken, registerUserMSTRAXToken } = useRegisterUserMSTRAXToken()
   const { pending: pendingClaimRewards, claimRewards } = useClaimRewards()
   const { pending: pendingStartWithdrawal, startWithdrawal } = useStartWithdrawal()
   const { pending: pendingCompleteWithdrawal, completeWithdrawal } = useCompleteWithdrawal()
+  const { pending: pendingEnableMSTRAXTokenSupport, enableMSTRAXTokenSupport } = useEnableMSTRAXTokenSupport()
 
   const balance = useContractBalance()
+  const totalTokensBalance = useTotalTokensBalance()
   const totalCollateralAmount = useTotalCollateralAmount()
   const totalRegistrations = useTotalRegistrations()
   const totalSeconds = useTotalSeconds()
+  const withdrawalDelay = useWithdrawalDelay()
+  const isOwner = useIsOwner()
+  const isMSTRAXTokenSupported = useIsMSTRAXTokenSupported()
 
   const userType = useUserType()
   const userBalance = useUserBalance()
+  const userMSTRAXTokenBalance = useUserMSTRAXTokenBalance()
   const userRewards = useUserRewards()
   const userLastClaimedBlock = useUserLastClaimedBlock()
   const userSinceLastClaim = useUserSinceLastClaim()
@@ -85,28 +97,47 @@ const Content = () => {
 
   const renderAction = useCallback(() => {
     if (userRegistrationStatus === RegistrationStatus.UNREGISTERED) {
-      const isDisabled = pendingRegisterUser || userBalance.lt(userCollateralAmount)
+      const isDisabledRegularRegister = pendingRegisterUser || userBalance.lt(userCollateralAmount)
+      const isDisabledMSTRAXTokenRegister = pendingRegisterUserMSTRAXToken || userMSTRAXTokenBalance.lt(userCollateralAmount)
 
       return (
-        <>
-          <button
-            className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
-              isDisabled
-                ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
-                : 'cursor-pointer bg-purple-800 text-white'
-            }`}
-            disabled={isDisabled}
-            onClick={isDisabled ? undefined : registerUser}
-          >
-            Register
-          </button>
-          <span className='text-xs text-red-400'>
-            { userBalance.lt(userCollateralAmount) ? `You do not have the required collateral to register. Please ensure you have a balance of ${formatEther(COLLATERAL_AMOUNT)} STRAX before trying to register` : null}
-          </span>
-        </>
+        <div className="flex flex-col gap-2">
+          <div>
+            <button
+              className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+                (isDisabledRegularRegister || pendingRegisterUserMSTRAXToken)
+                  ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
+                  : 'cursor-pointer bg-purple-800 text-white'
+              }`}
+              disabled={isDisabledRegularRegister || pendingRegisterUserMSTRAXToken}
+              onClick={(isDisabledRegularRegister || pendingRegisterUserMSTRAXToken) ? undefined : registerUser}
+            >
+              Register
+            </button>
+            <span className='text-xs text-red-400'>
+              { userBalance.lt(userCollateralAmount) ? ` You do not have the required collateral to register. Please ensure you have a balance of ${formatEther(userCollateralAmount)} STRAX before trying to register` : null}
+            </span>
+          </div>
+          <div>
+            <button
+              className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+                (isDisabledMSTRAXTokenRegister || pendingRegisterUser)
+                  ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
+                  : 'cursor-pointer bg-purple-800 text-white'
+              }`}
+              disabled={isDisabledMSTRAXTokenRegister || pendingRegisterUser}
+              onClick={(isDisabledMSTRAXTokenRegister || pendingRegisterUser) ? undefined : registerUserMSTRAXToken}
+            >
+              Register mSTRAX Token
+            </button>
+            <span className='text-xs text-red-400'>
+              { userMSTRAXTokenBalance.lt(userCollateralAmount) ? ` You do not have the required collateral to register. Please ensure you have a balance of ${formatEther(userCollateralAmount)} mSTRAX before trying to register` : null}
+            </span>
+          </div>
+        </div>
       )
     } else if (userRegistrationStatus === RegistrationStatus.REGISTERED) {
-      const isClaimDisabled = userRewards.eq(0) || pendingClaimRewards || pendingStartWithdrawal
+      const isClaimDisabled = userRewards.lte(0) || pendingClaimRewards || pendingStartWithdrawal
       const isStartDisabled = pendingClaimRewards || pendingStartWithdrawal
 
       return (
@@ -140,7 +171,7 @@ const Content = () => {
         </div>
       )
     } else if (userRegistrationStatus === RegistrationStatus.WITHDRAWING) {
-      const disabled = pendingCompleteWithdrawal || userSinceLastClaim < WITHDRAWAL_DELAY
+      const disabled = pendingCompleteWithdrawal || userSinceLastClaim < withdrawalDelay
       return (
         <>
           <button
@@ -154,25 +185,32 @@ const Content = () => {
           >
             Complete withdrawal
           </button>
-          <div>
-            {totalSeconds === 0 ? <span>Calculating time...</span> : <CountdownTimer totalSeconds={totalSeconds} />}
-          </div>
+          {disabled ? (
+            <div>
+              {totalSeconds === 0 ? <span>Calculating time...</span> : <CountdownTimer totalSeconds={totalSeconds} />}
+            </div>
+          ) : null}
         </>
       )
     }
 
     return null
   }, [
-    userBalance,
-    userRewards,
-    userCollateralAmount,
+    userBalance.toString(),
+    userMSTRAXTokenBalance.toString(),
+    userRewards.toString(),
+    userCollateralAmount.toString(),
     userRegistrationStatus,
     userSinceLastClaim,
+    withdrawalDelay,
+    totalSeconds,
     pendingRegisterUser,
+    pendingRegisterUserMSTRAXToken,
     pendingClaimRewards,
     pendingStartWithdrawal,
     pendingCompleteWithdrawal,
     registerUser,
+    registerUserMSTRAXToken,
     claimRewards,
     startWithdrawal,
     completeWithdrawal,
@@ -187,6 +225,10 @@ const Content = () => {
     {
       title: 'MasterNode contract balance',
       value: `${financial(formatEther(balance))} STRAX`,
+    },
+    {
+      title: 'MasterNode contract mSTRAX balance',
+      value: `${financial(formatEther(totalTokensBalance))} mSTRAX`,
     },
     {
       title: 'Total collateral amount',
@@ -206,6 +248,10 @@ const Content = () => {
     {
       title: 'Balance',
       value: `${financial(formatEther(userBalance))} STRAX`,
+    },
+    {
+      title: 'mSTRAX Token Balance',
+      value: `${financial(formatEther(userMSTRAXTokenBalance))} mSTRAX`,
     },
     {
       title: 'Rewards',
@@ -302,6 +348,21 @@ const Content = () => {
               </div>
               {renderStats()}
             </div>
+            {(!isMSTRAXTokenSupported && isOwner) ? (
+              <div>
+                <button
+                  className={`rounded-md px-3 py-2 text-[0.8125rem] font-semibold leading-5 hover:bg-indigo-500 ${
+                    pendingEnableMSTRAXTokenSupport
+                      ? 'cursor-not-allowed bg-gray-300 text-purple opacity-50'
+                      : 'cursor-pointer bg-purple-800 text-white'
+                  }`}
+                  disabled={pendingEnableMSTRAXTokenSupport}
+                  onClick={pendingEnableMSTRAXTokenSupport ? undefined : enableMSTRAXTokenSupport}
+                >
+                  Enable mSTRAX Token support
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
