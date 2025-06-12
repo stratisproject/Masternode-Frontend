@@ -313,7 +313,7 @@ export function useEnableMSTRAXTokenSupport() {
         method: 'eth_sendTransaction',
         params: [{
           from: address,
-          to: mSTRAXTokenContract.address as `0x${string}`,
+          to: contract.address as `0x${string}`,
           data: data as `0x${string}`,
         }],
       }) as `0x${string}`
