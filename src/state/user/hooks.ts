@@ -110,7 +110,7 @@ export function useUpdateData() {
     dispatch(setRegistrationStatus(registrationStatus?.result as any))
     dispatch(setLastClaimedBlock(Number(lastClaimedBlock)))
     dispatch(setSinceLastClaim(Number(blockNumber?.result) - Number(lastClaimedBlock)))
-    dispatch(setType(isLegacy ? UserType.LEGACY : UserType.REGULAR))
+    dispatch(setType(isLegacy?.result ? UserType.LEGACY : UserType.REGULAR))
     dispatch(setRegisterToken(accountRegisterToken?.result as string))
 
     if (registrationStatus?.result !== RegistrationStatus.WITHDRAWING) {
