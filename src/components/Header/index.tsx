@@ -1,37 +1,46 @@
 //import ConnectButton from 'components/ConnectButton'
 //import SelectNetwork from 'components/SelectNetwork'
 
-import STRATIS_ICON from 'assets/images/networks/stratis_logo_white.svg'
+import { useWeb3Auth } from '@web3auth/modal/react'
+
 import ConnectButton from 'components/ConnectButton'
 import SelectNetwork from 'components/SelectNetwork'
 import NetworkBadge from 'components/NetworkBadge'
 
+import STRATIS_ICON from 'assets/images/networks/stratis_logo_white.svg'
+
 const logo = STRATIS_ICON
 
-const Header = () => (
-  <header className="absolute w-full z-30">
-    <div className="max-w-6xl mx-auto px-4 sm:px-6">
-      <div className="flex items-center justify-between h-16 md:h-20">
-        <div className="flex-1 flex items-center">
-          <a className="inline-flex items-center" href="index.html" aria-label="Cruip">
-            <img className="max-w-none" src={logo} width="38" height="38" alt="Stellar" />
-            <span className="ml-3 hidden md:block">Stratis Masternode dApp</span>
-          </a>
-          <NetworkBadge />
-        </div>
+const Header = () => {
+  const { isConnected } = useWeb3Auth()
 
-        <ul className="flex-2 flex justify-end items-center">
-          <li>
-            <ConnectButton />
-          </li>
-          <li className="ml-6">
-            <SelectNetwork />
-          </li>
-        </ul>
+  return (
+    <header className="absolute w-full z-30">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="flex items-center justify-between h-16 md:h-20">
+          <div className="flex-1 flex items-center">
+            <a className="inline-flex items-center" href="index.html" aria-label="Cruip">
+              <img className="max-w-none" src={logo} width="38" height="38" alt="Stellar" />
+              <span className="ml-3 hidden md:block">Stratis Masternode dApp</span>
+            </a>
+            <NetworkBadge />
+          </div>
+
+          <ul className="flex-2 flex justify-end items-center">
+            <li>
+              <ConnectButton />
+            </li>
+            {isConnected ? (
+              <li className="ml-6">
+                <SelectNetwork />
+              </li>
+            ) : null}
+          </ul>
+        </div>
       </div>
-    </div>
-  </header>
-)
+    </header>
+  )
+}
 
 {/* <div className={styles.header}>
     <div className="flex items-center text-purple-900 gap-3 text-xl">

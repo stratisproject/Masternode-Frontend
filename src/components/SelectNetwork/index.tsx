@@ -1,20 +1,24 @@
 import { useState } from 'react'
+import { useWeb3Auth, useSwitchChain } from '@web3auth/modal/react'
+import { useChainId } from 'wagmi'
 
-import { CHAINS } from 'web3/chains'
+// import { CHAINS } from 'web3/chains'
 
-import { useActiveNetwork, useSwitchNetwork } from 'state/network/hooks'
+// import { useActiveNetwork, useSwitchNetwork } from 'state/network/hooks'
+
+import STRATIS_ICON from 'assets/images/networks/stratis_logo_white.svg'
 
 import Option from './Option'
 
 import styles from './styles.module.scss'
 
 const SelectNetwork = () => {
-  const activeNetwork = useActiveNetwork()
-  const switchNetwork = useSwitchNetwork()
+  // Triggers rerender on network switch
+  useChainId()
+  const { web3Auth } = useWeb3Auth()
+  const { switchChain } = useSwitchChain()
 
   const [showOptions, setShowOptions] = useState(false)
-
-  const availableNetworks = Object.values(CHAINS).filter(network => network.available)
 
   return (
     <div className={styles.network}>
@@ -26,12 +30,12 @@ const SelectNetwork = () => {
           </>
         ) : 'Wrong network'}
       </div> */}
-      <a onClick={() => setShowOptions(true)} className="btn-sm text-slate-300 bg-purple-400 hover:text-white transition duration-150 ease-in-out w-full group [background:linear-gradient(theme(colors.slate.900),_theme(colors.slate.900))_padding-box,_conic-gradient(theme(colors.slate.400),_theme(colors.slate.700)_25%,_theme(colors.slate.700)_75%,_theme(colors.slate.400)_100%)_border-box] relative before:absolute before:inset-0 before:bg-slate-800/30 before:rounded-full before:pointer-events-none">
+      <a onClick={() => setShowOptions(true)} className="cursor-pointer btn-sm text-slate-300 bg-purple-400 hover:text-white transition duration-150 ease-in-out w-full group [background:linear-gradient(theme(colors.slate.900),_theme(colors.slate.900))_padding-box,_conic-gradient(theme(colors.slate.400),_theme(colors.slate.700)_25%,_theme(colors.slate.700)_75%,_theme(colors.slate.400)_100%)_border-box] relative before:absolute before:inset-0 before:bg-slate-800/30 before:rounded-full before:pointer-events-none">
         <span className="relative inline-flex items-center flex gap-2">
-          {activeNetwork ? (
+          {web3Auth?.currentChain ? (
             <>
-              <img width="20px" height="20px" src={activeNetwork.icon} alt={activeNetwork.name} />
-              {activeNetwork.name}
+              <img width="20px" height="20px" src={STRATIS_ICON} alt={web3Auth.currentChain.displayName} />
+              {web3Auth.currentChain.displayName}
             </>
           ) : 'Wrong network'} <span
             className="tracking-normal text-purple-500 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
@@ -39,13 +43,13 @@ const SelectNetwork = () => {
       </a>
       {showOptions ? (
         <div className={styles.menu}>
-          {availableNetworks.map(network => (
+          {web3Auth?.coreOptions?.chains?.map(chain => (
             <Option
-              key={network.id}
-              network={network}
-              isActive={activeNetwork?.id === network.id}
-              activate={() => {
-                switchNetwork(network.id)
+              key={chain.chainId}
+              displayName={chain.displayName}
+              isActive={web3Auth?.currentChainId === chain.chainId}
+              activate={async () => {
+                await switchChain(chain.chainId)
                 setShowOptions(false)
               }}
             />

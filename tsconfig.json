@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "ESNext",
     "lib": [
       "dom",
       "dom.iterable",
@@ -13,19 +13,59 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": "src"
+    "baseUrl": "./",
+    "paths": {
+      "assets/*": [
+        "./src/assets/*"
+      ],
+      "components/*": [
+        "./src/components/*"
+      ],
+      "constants": [
+        "./src/constants/index.ts"
+      ],
+      "constants/*": [
+        "./src/constants/*"
+      ],
+      "hooks/*": [
+        "./src/hooks/*"
+      ],
+      "state": [
+        "./src/state/index.ts"
+      ],
+      "state/*": [
+        "./src/state/*"
+      ],
+      "types": [
+        "./src/types/index.ts"
+      ],
+      "types/*": [
+        "./src/types/*"
+      ],
+      "utils/*": [
+        "./src/utils/*"
+      ],
+      "web3/*": [
+        "./src/web3/*"
+      ]
+    }
   },
   "include": [
-    "src"
+    "src/*"
   ],
   "exclude": [
     "node_modules",
     "src/constants/abis/types/*.ts"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
   ]
 }

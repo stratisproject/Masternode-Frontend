@@ -1,7 +1,10 @@
 /* eslint-disable */
+import { createRequire } from "node:module";
+export const require = createRequire(import.meta.url);
+
 const webpack = require('webpack')
 
-module.exports = function override(config) {
+export default function override(config) {
   const fallback = config.resolve.fallback || {}
   Object.assign(fallback, {
     'crypto': require.resolve('crypto-browserify'),

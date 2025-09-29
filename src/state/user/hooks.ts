@@ -8,9 +8,9 @@ import {
   MSTRAX_TOKEN_ADDRESSES,
   BLOCK_SECONDS,
 } from '../../constants'
-import MASTERNODE_ABI from 'constants/abis/masterNode'
-import MULTICALL3_ABI from 'constants/multicall3'
-import ERC20_ABI from 'constants/abis/erc20'
+import MASTERNODE_ABI, { MASTERNODE_INTERFACE } from 'constants/abis/masterNode'
+import MULTICALL3_ABI, { MULTICALL3_INTERFACE } from 'constants/multicall3'
+import ERC20_ABI, { ERC20_INTERFACE } from 'constants/abis/erc20'
 
 import { useAppDispatch, useAppSelector } from 'state'
 import { RegistrationStatus, UserType } from 'types'
@@ -58,69 +58,77 @@ export function useUpdateData() {
     }
 
     const calls = [{
-      address: MULTICALL3_ADDRESS,
-      abi: MULTICALL3_ABI,
-      functionName: 'getEthBalance',
-      args: [address],
+      target: MULTICALL3_ADDRESS,
+      allowFailure: false,
+      callData: MULTICALL3_INTERFACE.encodeFunctionData('getEthBalance', [address]),
     }, {
-      address: MULTICALL3_ADDRESS,
-      abi: MULTICALL3_ABI,
-      functionName: 'getBlockNumber',
+      target: MULTICALL3_ADDRESS,
+      allowFailure: false,
+      callData: MULTICALL3_INTERFACE.encodeFunctionData('getBlockNumber'),
     }, {
-      address: MASTERNODE_ADDRESS,
-      abi: MASTERNODE_ABI,
-      functionName: 'accounts',
-      args: [address],
+      target: MASTERNODE_ADDRESS,
+      allowFailure: false,
+      callData: MASTERNODE_INTERFACE.encodeFunctionData('accounts', [address]),
     }, {
-      address: MASTERNODE_ADDRESS,
-      abi: MASTERNODE_ABI,
-      functionName: 'registrationStatus',
-      args: [address],
+      target: MASTERNODE_ADDRESS,
+      allowFailure: false,
+      callData: MASTERNODE_INTERFACE.encodeFunctionData('registrationStatus', [address]),
     }, {
-      address: MASTERNODE_ADDRESS,
-      abi: MASTERNODE_ABI,
-      functionName: 'legacy',
-      args: [address],
+      target: MASTERNODE_ADDRESS,
+      allowFailure: false,
+      callData: MASTERNODE_INTERFACE.encodeFunctionData('legacy', [address]),
     }, {
-      address: MASTERNODE_ADDRESS,
-      abi: MASTERNODE_ABI,
-      functionName: 'accountRegisterToken',
-      args: [address],
+      target: MASTERNODE_ADDRESS,
+      allowFailure: false,
+      callData: MASTERNODE_INTERFACE.encodeFunctionData('accountRegisterToken', [address]),
     }]
     if (mstraxTokenAddress) {
       calls.push({
-        address: mstraxTokenAddress,
-        abi: ERC20_ABI as any,
-        functionName: 'balanceOf',
-        args: [address],
+        target: mstraxTokenAddress,
+        allowFailure: false,
+        callData: ERC20_INTERFACE.encodeFunctionData('balanceOf', [address]),
       })
     }
 
     // @ts-ignore
-    const [ balance, blockNumber, account, registrationStatus, isLegacy, accountRegisterToken, mstraxBalance ] = await client.multicall({
-      contracts: calls as any,
+    const response: any[] = await client.readContract({
+      address: MULTICALL3_ADDRESS,
+      abi: MULTICALL3_ABI,
+      functionName: 'aggregate3',
+      args: [calls],
     })
-    const accountBalance: bigint = (account?.result as any[])[0]
-    const lastDividends: bigint = (account?.result as any[])[1]
-    const lastClaimedBlock: number = (account?.result as any[])[2]
+    const ethBalanceResult = MULTICALL3_INTERFACE.decodeFunctionResult('getEthBalance', response[0].returnData)
+    const blockNumberResult = MULTICALL3_INTERFACE.decodeFunctionResult('getBlockNumber', response[1].returnData)
+    const accountResult = MASTERNODE_INTERFACE.decodeFunctionResult('accounts', response[2].returnData)
+    const registrationStatusResult = MASTERNODE_INTERFACE.decodeFunctionResult('registrationStatus', response[3].returnData)
+    const legacyResult = MASTERNODE_INTERFACE.decodeFunctionResult('legacy', response[4].returnData)
+    const accountRegisterTokenResult = MASTERNODE_INTERFACE.decodeFunctionResult('accountRegisterToken', response[5].returnData)
 
-    dispatch(setBalance((balance?.result as bigint).toString()))
-    dispatch(setAccountBalance(accountBalance.toString()))
-    dispatch(setLastDividends(lastDividends.toString()))
-    dispatch(setRegistrationStatus(registrationStatus?.result as any))
-    dispatch(setLastClaimedBlock(Number(lastClaimedBlock)))
-    dispatch(setSinceLastClaim(Number(blockNumber?.result) - Number(lastClaimedBlock)))
-    dispatch(setType(isLegacy?.result ? UserType.LEGACY : UserType.REGULAR))
-    dispatch(setRegisterToken(accountRegisterToken?.result as string))
+    const blockNumber = Number(blockNumberResult.toString())
+    const accountBalance = accountResult[0].toString()
+    const lastDividends = accountResult[1].toString()
+    const lastClaimedBlock = Number(accountResult[2].toString())
+    const registrationStatus = Number(registrationStatusResult.toString())
+    const isLegacy = legacyResult.toString() === 'true'
 
-    if (registrationStatus?.result !== RegistrationStatus.WITHDRAWING) {
+    dispatch(setBalance(ethBalanceResult.toString()))
+    dispatch(setAccountBalance(accountBalance))
+    dispatch(setLastDividends(lastDividends))
+    dispatch(setRegistrationStatus(registrationStatus))
+    dispatch(setLastClaimedBlock(lastClaimedBlock))
+    dispatch(setSinceLastClaim(blockNumber - lastClaimedBlock))
+    dispatch(setType(isLegacy ? UserType.LEGACY : UserType.REGULAR))
+    dispatch(setRegisterToken(accountRegisterTokenResult.toString()))
+
+    if (registrationStatus !== RegistrationStatus.WITHDRAWING) {
       dispatch(setTotalSeconds(0))
     } else {
-      const totalSeconds = (Number(lastClaimedBlock) + withdrawalDelay - Number(blockNumber?.result)) * BLOCK_SECONDS
+      const totalSeconds = (lastClaimedBlock + withdrawalDelay - blockNumber) * BLOCK_SECONDS
       dispatch(setTotalSeconds(totalSeconds))
     }
-    if (mstraxBalance) {
-      dispatch(setMSTRAXBalance((mstraxBalance?.result as bigint).toString()))
+    if (response[6]) {
+      const mstraxBalanceResult = ERC20_INTERFACE.decodeFunctionResult('balanceOf', response[6].returnData)
+      dispatch(setMSTRAXBalance(mstraxBalanceResult.toString()))
     } else {
       dispatch(setMSTRAXBalance('0'))
     }

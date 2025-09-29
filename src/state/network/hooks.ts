@@ -1,5 +1,7 @@
 import { useCallback } from 'react'
-import { useAccount, useChainId, useSwitchChain } from 'wagmi'
+import { useAccount, useChainId, useSwitchChain as useSwitchChainWagmi } from 'wagmi'
+import { useSwitchChain, useWeb3Auth } from '@web3auth/modal/react'
+import { hexlify } from 'ethers/lib/utils'
 
 import { useAppDispatch, useAppSelector } from 'state'
 import { ChainId } from 'web3/chains'
@@ -30,9 +32,12 @@ export function useActiveNetwork() {
 
 export function useSwitchNetwork() {
   const { switchChain } = useSwitchChain()
+  // const { switchChain: switchChainWagmi } = useSwitchChainWagmi()
+
   const { address } = useAccount()
   const dispatch = useAppDispatch()
   const chainId = useActiveChainId()
+
 
   return useCallback(
     async (newChainId: ChainId) => {
@@ -40,7 +45,8 @@ export function useSwitchNetwork() {
         // Always update the site network ID first
         dispatch(setSiteNetworkId(newChainId))
 
-        await switchChain({ chainId: newChainId })
+        await switchChain(hexlify(newChainId))
+        // switchChainWagmi({ chainId: newChainId })
       } catch (error) {
         console.error('Failed to switch network', error)
         // If switch fails, revert to current chain

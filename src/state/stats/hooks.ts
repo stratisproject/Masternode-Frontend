@@ -1,12 +1,13 @@
 import { useCallback, useMemo } from 'react'
-import { usePublicClient, useAccount } from 'wagmi'
+import { usePublicClient, useAccount, createConfig } from 'wagmi'
 import { BigNumber } from 'ethers'
 
 import { useAppDispatch, useAppSelector } from 'state'
 
+import MASTERNODE_ABI, { MASTERNODE_INTERFACE } from 'constants/abis/masterNode'
+import MULTICALL3_ABI, { MULTICALL3_INTERFACE } from 'constants/multicall3'
+
 import { MASTERNODE_ADDRESS, MULTICALL3_ADDRESS, DEFAULT_OWNER } from '../../constants'
-import MASTERNODE_ABI from 'constants/abis/masterNode'
-import MULTICALL3_ABI from 'constants/multicall3'
 
 import {
   setOwner,
@@ -32,68 +33,82 @@ export function useUpdateData() {
     }
 
     const calls = [{
-      address: MULTICALL3_ADDRESS,
-      abi: MULTICALL3_ABI,
-      functionName: 'getEthBalance',
-      args: [MASTERNODE_ADDRESS],
+      target: MULTICALL3_ADDRESS,
+      allowFailure: false,
+      callData: MULTICALL3_INTERFACE.encodeFunctionData('getEthBalance', [MASTERNODE_ADDRESS]),
     }, {
-      address: MASTERNODE_ADDRESS,
-      abi: MASTERNODE_ABI,
-      functionName: 'totalRegistrations',
+      target: MASTERNODE_ADDRESS,
+      allowFailure: false,
+      callData: MASTERNODE_INTERFACE.encodeFunctionData('totalRegistrations'),
     }, {
-      address: MASTERNODE_ADDRESS,
-      abi: MASTERNODE_ABI,
-      functionName: 'totalCollateralAmount',
+      target: MASTERNODE_ADDRESS,
+      allowFailure: false,
+      callData: MASTERNODE_INTERFACE.encodeFunctionData('totalCollateralAmount'),
     }, {
-      address: MASTERNODE_ADDRESS,
-      abi: MASTERNODE_ABI,
-      functionName: 'totalDividends',
+      target: MASTERNODE_ADDRESS,
+      allowFailure: false,
+      callData: MASTERNODE_INTERFACE.encodeFunctionData('totalDividends'),
     }, {
-      address: MASTERNODE_ADDRESS,
-      abi: MASTERNODE_ABI,
-      functionName: 'lastBalance',
+      target: MASTERNODE_ADDRESS,
+      allowFailure: false,
+      callData: MASTERNODE_INTERFACE.encodeFunctionData('lastBalance'),
     }, {
-      address: MASTERNODE_ADDRESS,
-      abi: MASTERNODE_ABI,
-      functionName: 'withdrawingCollateralAmount',
+      target: MASTERNODE_ADDRESS,
+      allowFailure: false,
+      callData: MASTERNODE_INTERFACE.encodeFunctionData('withdrawingCollateralAmount'),
     }, {
-      address: MASTERNODE_ADDRESS,
-      abi: MASTERNODE_ABI,
-      functionName: 'totalTokensBalance',
+      target: MASTERNODE_ADDRESS,
+      allowFailure: false,
+      callData: MASTERNODE_INTERFACE.encodeFunctionData('totalTokensBalance'),
     }, {
-      address: MASTERNODE_ADDRESS,
-      abi: MASTERNODE_ABI,
-      functionName: 'owner',
+      target: MASTERNODE_ADDRESS,
+      allowFailure: false,
+      callData: MASTERNODE_INTERFACE.encodeFunctionData('owner'),
     }, {
-      address: MASTERNODE_ADDRESS,
-      abi: MASTERNODE_ABI,
-      functionName: 'COLLATERAL_AMOUNT',
+      target: MASTERNODE_ADDRESS,
+      allowFailure: false,
+      callData: MASTERNODE_INTERFACE.encodeFunctionData('COLLATERAL_AMOUNT'),
     }, {
-      address: MASTERNODE_ADDRESS,
-      abi: MASTERNODE_ABI,
-      functionName: 'COLLATERAL_AMOUNT_LEGACY',
+      target: MASTERNODE_ADDRESS,
+      allowFailure: false,
+      callData: MASTERNODE_INTERFACE.encodeFunctionData('COLLATERAL_AMOUNT_LEGACY'),
     }, {
-      address: MASTERNODE_ADDRESS,
-      abi: MASTERNODE_ABI,
-      functionName: 'WITHDRAWAL_DELAY',
+      target: MASTERNODE_ADDRESS,
+      allowFailure: false,
+      callData: MASTERNODE_INTERFACE.encodeFunctionData('WITHDRAWAL_DELAY'),
     }]
 
     // @ts-ignore
-    const response = await client.multicall({
-      contracts: calls as any,
+    const response: any[] = await client.readContract({
+      address: MULTICALL3_ADDRESS,
+      abi: MULTICALL3_ABI,
+      functionName: 'aggregate3',
+      args: [calls],
     })
 
-    dispatch(setContractBalance((response[0]?.result as bigint).toString()))
-    dispatch(setTotalRegistrations(Number(response[1]?.result as bigint)))
-    dispatch(setTotalCollateralAmount((response[2]?.result as bigint).toString()))
-    dispatch(setTotalDividends((response[3]?.result as bigint).toString()))
-    dispatch(setLastBalance((response[4]?.result as bigint).toString()))
-    dispatch(setWithdrawingCollateralAmount((response[5]?.result as bigint).toString()))
-    dispatch(setTotalTokensBalance((response[6]?.result as bigint).toString()))
-    dispatch(setOwner(response[7]?.result as string))
-    dispatch(setCollateralAmount((response[8]?.result as bigint).toString()))
-    dispatch(setCollateralAmountLegacy((response[9]?.result as bigint).toString()))
-    dispatch(setWithdrawalDelay(Number(response[10]?.result as bigint)))
+    const contractBalanceResult = MULTICALL3_INTERFACE.decodeFunctionResult('getEthBalance', response[0].returnData)
+    const totalRegistrationsResult = MASTERNODE_INTERFACE.decodeFunctionResult('totalRegistrations', response[1].returnData)
+    const totalCollateralAmountResult = MASTERNODE_INTERFACE.decodeFunctionResult('totalCollateralAmount', response[2].returnData)
+    const totalDividendsResult = MASTERNODE_INTERFACE.decodeFunctionResult('totalDividends', response[3].returnData)
+    const lastBalanceResult = MASTERNODE_INTERFACE.decodeFunctionResult('lastBalance', response[4].returnData)
+    const withdrawingCollateralAmountResult = MASTERNODE_INTERFACE.decodeFunctionResult('withdrawingCollateralAmount', response[5].returnData)
+    const totalTokensBalanceResult = MASTERNODE_INTERFACE.decodeFunctionResult('totalTokensBalance', response[6].returnData)
+    const ownerResult = MASTERNODE_INTERFACE.decodeFunctionResult('owner', response[7].returnData)
+    const collateralAmountResult = MASTERNODE_INTERFACE.decodeFunctionResult('COLLATERAL_AMOUNT', response[8].returnData)
+    const collateralAmountLegacyResult = MASTERNODE_INTERFACE.decodeFunctionResult('COLLATERAL_AMOUNT_LEGACY', response[9].returnData)
+    const withdrawalDelayResult = MASTERNODE_INTERFACE.decodeFunctionResult('WITHDRAWAL_DELAY', response[10].returnData)
+
+    dispatch(setContractBalance(contractBalanceResult.toString()))
+    dispatch(setTotalRegistrations(Number(totalRegistrationsResult.toString())))
+    dispatch(setTotalCollateralAmount(totalCollateralAmountResult.toString()))
+    dispatch(setTotalDividends(totalDividendsResult.toString()))
+    dispatch(setLastBalance(lastBalanceResult.toString()))
+    dispatch(setWithdrawingCollateralAmount(withdrawingCollateralAmountResult.toString()))
+    dispatch(setTotalTokensBalance(totalTokensBalanceResult.toString()))
+    dispatch(setOwner(ownerResult.toString()))
+    dispatch(setCollateralAmount(collateralAmountResult.toString()))
+    dispatch(setCollateralAmountLegacy(collateralAmountLegacyResult.toString()))
+    dispatch(setWithdrawalDelay(Number(withdrawalDelayResult.toString())))
   }, [dispatch, client])
 }
 

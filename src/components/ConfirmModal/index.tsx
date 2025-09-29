@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+
 import { UserType } from 'types'
 import { useUserType } from 'state/user/hooks'
 

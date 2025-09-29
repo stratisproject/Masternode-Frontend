@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
+import { waitForTransactionReceipt } from '@wagmi/core'
 import { formatEther } from 'viem'
 
 import { useIsMSTRAXTokenSupported, useIsOwner, useWithdrawalDelay, useCollateralAmount } from 'state/stats/hooks'
@@ -59,9 +60,8 @@ export function useRegisterUser() {
         }],
       }) as `0x${string}`
       // Wait for the transaction to be mined
-      const receipt = await publicClient.request({
-        method: 'eth_getTransactionReceipt',
-        params: [hash],
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
       })
       console.log('Transaction successful:', receipt)
     } catch (error) {
@@ -130,9 +130,8 @@ export function useRegisterUserMSTRAXToken() {
         }],
       }) as `0x${string}`
       // Wait for the transaction to be mined
-      const receipt = await publicClient.request({
-        method: 'eth_getTransactionReceipt',
-        params: [hash],
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
       })
       console.log('Transaction successful:', receipt)
     } catch (error) {
@@ -184,9 +183,8 @@ export function useClaimRewards() {
         }],
       }) as `0x${string}`
       // Wait for the transaction to be mined
-      const receipt = await publicClient.request({
-        method: 'eth_getTransactionReceipt',
-        params: [hash],
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
       })
       console.log('Transaction successful:', receipt)
     } catch (error) {
@@ -228,9 +226,8 @@ export function useStartWithdrawal() {
         }],
       }) as `0x${string}`
       // Wait for the transaction to be mined
-      const receipt = await publicClient.request({
-        method: 'eth_getTransactionReceipt',
-        params: [hash],
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
       })
       console.log('Transaction successful:', receipt)
     } catch (error) {
@@ -275,9 +272,8 @@ export function useCompleteWithdrawal() {
         }],
       }) as `0x${string}`
       // Wait for the transaction to be mined
-      const receipt = await publicClient.request({
-        method: 'eth_getTransactionReceipt',
-        params: [hash],
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
       })
       console.log('Transaction successful:', receipt)
     } catch (error) {
@@ -318,9 +314,8 @@ export function useEnableMSTRAXTokenSupport() {
         }],
       }) as `0x${string}`
       // Wait for the transaction to be mined
-      const receipt = await publicClient.request({
-        method: 'eth_getTransactionReceipt',
-        params: [hash],
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
       })
       console.log('Transaction successful:', receipt)
     } catch (err) {

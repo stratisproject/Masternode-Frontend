@@ -1,11 +1,13 @@
-import { formatEther } from 'ethers/lib/utils'
-import { useAppSelector, useAppDispatch } from 'state'
 import { useCallback } from 'react'
-import { setHide, setShow } from './reducer'
+import { formatEther } from 'ethers/lib/utils'
+
+import { useAppSelector, useAppDispatch } from 'state'
 import { useUserRewards, useUserType } from 'state/user/hooks'
+import { useWithdrawalDelay } from 'state/stats/hooks'
 import { UserType } from 'types'
 
-import { useWithdrawalDelay } from 'state/stats/hooks'
+import { setHide, setShow } from './reducer'
+
 
 export function useShow() {
   return useAppSelector(state => state.confirm.showModal)

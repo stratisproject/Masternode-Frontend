@@ -1,8 +1,9 @@
 import { useEffect } from 'react'
+import { useChainId } from 'wagmi'
+
 import { useAppDispatch } from 'state'
 import { updateSelectedWallet } from 'state/wallet/reducer'
 import { useSelectedWallet } from 'state/wallet/hooks'
-import { useChainId } from 'wagmi'
 
 export default function useEagerlyConnect() {
   const dispatch = useAppDispatch()

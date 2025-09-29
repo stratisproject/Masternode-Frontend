@@ -3,11 +3,10 @@ import { Contract } from 'ethers'
 import {
   usePublicClient,
   useAccount,
+  useChainId,
 } from 'wagmi'
 
 import { getWagmiContract } from 'web3/wagmi'
-
-import { useActiveChainId } from 'state/network/hooks'
 
 import MASTERNODE_ABI from 'constants/abis/masterNode'
 import ERC20_ABI from 'constants/abis/erc20'
@@ -43,6 +42,6 @@ export function useMasterNodeContract() {
 }
 
 export function useMSTRAXTokenContract(withSigner = true) {
-  const chainId = useActiveChainId()
+  const chainId = useChainId()
   return useContract<Erc20>(MSTRAX_TOKEN_ADDRESSES[chainId], ERC20_ABI, withSigner)
 }
