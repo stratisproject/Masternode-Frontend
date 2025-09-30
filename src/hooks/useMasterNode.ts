@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import { waitForTransactionReceipt } from '@wagmi/core'
 import { formatEther } from 'viem'
 
 import { useIsMSTRAXTokenSupported, useIsOwner, useWithdrawalDelay, useCollateralAmount } from 'state/stats/hooks'
