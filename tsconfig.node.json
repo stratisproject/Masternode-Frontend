@@ -1,9 +1,16 @@
 {
   "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "composite": true,
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true
   },
-  "include": ["vite.config.ts"]
+  "exclude": [
+    "node_modules",
+    "src/constants/abis/types/*.ts"
+  ],
+  "include": [
+    "vite.config.ts"
+  ]
 }
