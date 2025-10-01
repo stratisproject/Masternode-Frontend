@@ -10,8 +10,8 @@ on:
       - web3auth
 
 env:
-  VITE_WEB3AUTH_ENV: devnet
-  VITE_WEB3AUTH_CLIENT_ID: ${{ vars.DEVNET_WEB3AUTH_CLIENT_ID }}
+  VITE_WEB3AUTH_ENV: mainnet
+  VITE_WEB3AUTH_CLIENT_ID: ${{ vars.WEB3AUTH_CLIENT_ID }}
 
 jobs:
   build_and_deploy_job:
