@@ -21,7 +21,7 @@ const Header = () => {
           <div className="flex-1 flex items-center">
             <a className="inline-flex items-center" href="index.html" aria-label="Cruip">
               <img className="max-w-none" src={logo} width="38" height="38" alt="Stellar" />
-              <span className="ml-3 hidden md:block">Stratis Masternode dApp</span>
+              <span className="ml-3 hidden md:block">Xertra Masternode dApp</span>
             </a>
             <NetworkBadge />
           </div>
@@ -44,8 +44,8 @@ const Header = () => {
 
 {/* <div className={styles.header}>
     <div className="flex items-center text-purple-900 gap-3 text-xl">
-      <img height="50" width="50" src={logo} alt="Stratis" />
-      <span className={styles.title}>Stratis Masternode dApp</span>
+      <img height="50" width="50" src={logo} alt="Xertra" />
+      <span className={styles.title}>Xertra Masternode dApp</span>
     </div>
     <div className={styles.content}>
       <ConnectButton />

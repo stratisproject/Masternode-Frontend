@@ -18,7 +18,7 @@ const Footer = () => (
                   <img src={logo} width="38" height="38" alt="Stellar" />
                 </a>
               </div>
-              <div className="text-sm text-slate-300">&copy; Stratis Platform <span className="text-slate-500">-</span> All rights
+              <div className="text-sm text-slate-300">&copy; Xertra Platform <span className="text-slate-500">-</span> All rights
                 reserved.</div>
             </div>
             <ul className="flex">
